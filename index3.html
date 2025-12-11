@@ -1,0 +1,2939 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>S/E Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="js/markdown-it.min.js"></script>
+  <style>
+    /* Обновленные цвета кнопок */
+    :root {
+      --primary: #4166d5;
+      --primary-hover: #365ba7;
+      --sidebar-bg: #1e1f25;
+      --main-bg: #1a1a1a;
+      --message-user: #4166d5;  /* Цвет сообщений пользователя */
+      --message-assistant: #4d4d4d;  /* Цвет сообщений ассистента */
+      --message-user-text: white;
+      --text-primary: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --border-color: #333;
+      --card-bg: #25262c;
+      --scroll-thumb: #4a4a4a;
+      --transition: all 0.3s ease;
+    }
+
+    [data-theme="light"] {
+      --sidebar-bg: #f5f7fa;
+      --main-bg: #ffffff;
+      --message-user: #e6f2ff;
+      --message-assistant: #f0f4f8;
+      --message-user-text: #000000;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --border-color: #ddd;
+      --card-bg: #ffffff;
+      --scroll-thumb: #c1c1c1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI Black", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      background-color: var(--main-bg);
+      color: var(--text-primary);
+      overflow: hidden;
+    }
+
+    /* Боковая панель */
+    .sidebar {
+      width: 300px;
+      background-color: var(--sidebar-bg);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      position: relative;
+      z-index: 10;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .sidebar.collapsed {
+      transform: translateX(-100%);
+      width: 0;
+      padding: 0;
+      border: none;
+      box-shadow: none;
+    }
+
+    .toggle-sidebar {
+      position: fixed;
+      top: 20px;
+      left: 300px;
+      width: 40px;
+      height: 40px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-left: none;
+      border-radius: 0 10px 10px 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      transition: var(--transition);
+    }
+
+    .sidebar.collapsed + .toggle-sidebar {
+      left: 0;
+    }
+
+    .toggle-sidebar:hover {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .header {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header img.logo {
+      display: block;
+      margin: 0 auto 10px auto;
+      width: 100px;
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .header img.logo:hover {
+      transform: rotate(5deg) scale(1.05);
+    }
+
+    .header h1 {
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 10px;
+      color: var(--text-primary);
+      transition: color 0.3s ease;
+    }
+
+    .header button {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      background-color: var(--primary);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: var(--transition);
+    }
+
+    .header button:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .current-model {
+      text-align: center;
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .chat-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      padding-right: 5px;
+    }
+
+    .chat-item {
+      padding: 14px;
+      margin-bottom: 8px;
+      background-color: var(--card-bg);
+      border-radius: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: var(--transition), opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .chat-item.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .chat-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .chat-item.active {
+      background-color: rgba(65, 102, 213, 0.15);
+      border-color: var(--primary);
+    }
+
+    .chat-item span {
+      flex: 1;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-delete-btn {
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      margin-left: 10px;
+      opacity: 0.5;
+      transition: var(--transition);
+    }
+
+    .chat-delete-btn:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    .chat-delete-btn img {
+      width: 24px;
+      height: 24px;
+      transition: transform 0.3s ease;
+    }
+
+    /* Основная область чата */
+    .main {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--main-bg);
+      padding: 20px;
+      overflow: hidden;
+      transition: var(--transition);
+      background-size: cover;
+      background-attachment: fixed;
+    }
+
+    .main.expanded {
+      margin-left: 0;
+    }
+
+    .main.empty-chat .input-wrapper {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      transform: translateY(-50%);
+    }
+
+    .chat-window {
+      flex: 1;
+      width: 100%;
+      overflow-y: auto;
+      background-color: transparent;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .drag-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px dashed var(--border-color);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      border-radius: 16px;
+      backdrop-filter: blur(5px);
+    }
+
+    .drag-overlay.active {
+      display: flex;
+    }
+
+    .drag-overlay p {
+      font-size: 18px;
+      color: var(--text-primary);
+      font-weight: bold;
+    }
+
+    .chat-content {
+      width: 100%;
+      padding: 20px 40px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .intro-text {
+      text-align: center;
+      margin-bottom: 15px;
+      line-height: 1.4;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .intro-text p {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: var(--text-primary);
+    }
+
+    .message-block {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      max-width: 90%;
+      padding: 16px 16px 16px 30px;
+      border-radius: 16px;
+      position: relative;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .message-block:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .chat-text {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+
+    .assistant-message {
+      align-self: flex-start;
+      background-color: var(--message-assistant);
+      border: 1px solid var(--border-color);
+    }
+
+    .user-message {
+      align-self: flex-end;
+      background-color: var(--message-user);
+      border: 1px solid var(--border-color);
+      color: var(--message-user-text);
+    }
+
+    .user-message .role,
+    .user-message .chat-text,
+    .user-message .message-buttons button {
+      color: var(--message-user-text);
+    }
+
+    .message-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      margin-left: auto;
+      opacity: 0.6;
+      transition: opacity 0.3s ease;
+    }
+
+    .message-block:hover .message-buttons {
+      opacity: 1;
+    }
+
+    .message-copy-btn, .message-edit-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-primary);
+      display: inline-block;
+      padding: 4px;
+      border-radius: 6px;
+      transition: var(--transition);
+    }
+
+    .message-copy-btn:hover, .message-edit-btn:hover {
+      background-color: rgba(255,255,255,0.1);
+      transform: scale(1.1);
+    }
+
+    .code-container {
+      position: relative;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 10px;
+      transition: transform 0.3s ease;
+    }
+
+    .code-container:hover {
+      transform: scale(1.01);
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background-color: var(--card-bg);
+      border: none;
+      border-radius: 5px;
+      color: var(--text-primary);
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      opacity: 0.7;
+      transition: var(--transition);
+    }
+
+    .copy-btn:hover {
+      opacity: 1;
+      background-color: var(--primary);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    pre code {
+      display: block;
+      background-color: var(--sidebar-bg);
+      padding: 15px;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 0;
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    /* Область ввода */
+    .input-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      position: relative;
+    }
+
+    #attachmentsContainer {
+      display: none;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+      justify-content: center;
+      max-width: 80%;
+    }
+
+    #attachmentsContainer img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+    }
+
+    #attachmentsContainer img:hover {
+      transform: scale(1.05);
+    }
+
+    .attachment-preview {
+      position: relative;
+      display: inline-block;
+      margin: 4px;
+    }
+
+    .file-preview {
+      padding: 4px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      text-align: center;
+      font-size: 12px;
+      background-color: var(--card-bg);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 80px;
+      overflow: hidden;
+      transition: transform 0.3s ease;
+    }
+
+    .file-preview:hover {
+      transform: translateY(-3px);
+    }
+
+    .cancel-btn {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 16px;
+      padding: 2px 6px;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .cancel-btn:hover {
+      background: #ff4d4d;
+      transform: scale(1.1);
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 80%;
+    }
+
+    #chatInput {
+      width: 100%;
+      min-height: 50px;
+      max-height: 200px;
+      padding: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 25px;
+      background-color: var(--card-bg);
+      color: var(--text-primary);
+      resize: none;
+      overflow-y: auto;
+      font-family: "Segoe UI Black", "Inter", sans-serif;
+      line-height: 1.5;
+      font-size: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      transition: var(--transition);
+    }
+
+    #chatInput:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(65, 102, 213, 0.2);
+      outline: none;
+      transform: translateY(-2px);
+    }
+
+    .input-area button {
+      border: none;
+      border-radius: 50%;
+      background-color: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      /* width: 50px; Removed */
+      /* height: 50px; Removed */
+      display: inline-flex; /* Changed from flex to allow content wrapping */
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: var(--transition);
+      padding: 3px; /* Changed padding around the image */
+      box-sizing: border-box; 
+    }
+
+    .input-area button:hover {
+      background-color: var(--primary-hover);
+      transform: scale(1.05);
+    }
+
+    #sendBtn,
+    #stopBtn {
+      background-color: transparent;
+      border: none; /* Removed border */
+    }
+
+    #sendBtn:hover,
+    #stopBtn:hover {
+      background-color: rgba(255, 255, 255, 0.1); /* Match #imageUploadBtn hover background, no rotation */
+    }
+
+    /* Tools button styles */
+    #toolsBtn {
+      background-color: var(--card-bg);
+      position: relative;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+      border-radius: 50%; /* Ensure circular */
+      /* width and height are effectively removed due to base class change */
+      padding: 3px; /* Consistent padding */
+      display: inline-flex; /* Ensure it wraps content */
+      box-sizing: border-box; /* Ensure padding/border don't alter fixed dimensions */
+    }
+
+    #toolsBtn:hover {
+      background-color: #647af7;
+      border-color: #647af7;
+    }
+
+    #toolsBtn.active {
+      background-color: #4166d5;
+      border-color: #4166d5;
+    }
+
+    #toolsBtn.active:hover {
+      background-color: #0040ff;
+      border-color: #0040ff;
+    }
+
+
+
+    #imageUploadBtn {
+      border: none;
+      background: none;
+      cursor: pointer;
+      margin-right: 4px;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: var(--transition);
+      padding: 3px; /* Consistent padding */
+      display: inline-flex; /* Ensure it wraps content */
+      /* box-sizing: border-box; is inherited */
+    }
+
+    #imageUploadBtn:hover {
+      background-color: rgba(255,255,255,0.1);
+      transform: rotate(10deg);
+    }
+
+    .input-area button img,
+    #imageUploadBtn img,
+    #toolsBtn img {
+      display: block; /* Helps prevent extra space if parent is inline-flex */
+      /* Removed max-width, max-height, object-fit. Size will be from inline style on <img> */
+    }
+
+    /* Модальные окна */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.7);
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal.show {
+      display: block;
+      opacity: 1;
+    }
+
+    .modal-content {
+      background-color: var(--card-bg);
+      margin: 10% auto;
+      padding: 25px;
+      border: 1px solid var(--border-color);
+      width: 400px;
+      max-width: 90%;
+      border-radius: 20px;
+      color: var(--text-primary);
+      text-align: center;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transform: translateY(-20px);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .modal.show .modal-content {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+
+    .close {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: var(--transition);
+    }
+
+    .close:hover {
+      color: var(--primary);
+      transform: scale(1.1);
+    }
+
+    #settingsModal select {
+      width: 90%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background-color: var(--main-bg);
+      color: var(--text-primary);
+      font-size: 16px;
+      transition: var(--transition);
+    }
+
+    #settingsModal select:focus {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    #saveSettingsBtn {
+      margin-top: 20px;
+      padding: 12px 25px;
+      background-color: var(--primary);
+      border: none;
+      border-radius: 25px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      width: 100%;
+      transition: var(--transition);
+    }
+
+    #saveSettingsBtn:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-3px);
+    }
+
+    /* Стили для переключателя */
+    .switch input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    .switch input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    .model-option {
+      padding: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 15px;
+      margin-bottom: 15px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--main-bg);
+      transition: var(--transition);
+    }
+
+    .model-option:hover {
+      border-color: var(--primary);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .model-option button {
+      background-color: transparent;
+      border: none;
+      border-radius: 8px;
+      color: var(--text-primary);
+      padding: 5px 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .model-option button:hover {
+      background-color: rgba(255,255,255,0.1);
+      transform: scale(1.1);
+    }
+
+    .model-option button img {
+      width: 40px;
+      height: 40px;
+    }
+
+    .progress-container {
+      position: relative;
+      width: 100%;
+      background-color: var(--main-bg);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+      height: 25px;
+      border: 1px solid var(--border-color);
+    }
+
+    .progress-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 0;
+      background-color: var(--primary);
+      transition: width 0.3s ease;
+    }
+
+    .progress-label {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      line-height: 25px;
+      text-align: center;
+      color: #fff;
+      font-size: 12px;
+      pointer-events: none;
+      user-select: none;
+      font-weight: bold;
+    }
+
+    .custom-input {
+      margin-top: 10px;
+      width: 90%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background-color: var(--main-bg);
+      color: var(--text-primary);
+      font-size: 16px;
+      transition: var(--transition);
+    }
+
+    .custom-input:focus {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .install-btn {
+      margin-top: 15px;
+      padding: 12px 20px;
+      background-color: var(--primary);
+      border: none;
+      border-radius: 25px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      transition: var(--transition);
+    }
+
+    .install-btn:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-3px);
+    }
+
+    /* Настройки темы */
+    .theme-options {
+      display: flex;
+      gap: 15px;
+      margin-top: 15px;
+      justify-content: center;
+    }
+
+    .theme-option {
+      flex: 1;
+      padding: 15px;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      border: 2px solid transparent;
+      max-width: 120px;
+      transition: var(--transition);
+    }
+
+    .theme-option.active {
+      border-color: var(--primary);
+      background-color: rgba(65, 102, 213, 0.1);
+    }
+
+    .theme-option:hover {
+      transform: scale(1.05);
+    }
+
+    .theme-dark {
+      background: linear-gradient(135deg, #1e1f25, #121318);
+      color: white;
+    }
+
+    .theme-light {
+      background: linear-gradient(135deg, #f5f7fa, #e4e9f2);
+      color: #333;
+    }
+
+    .custom-theme-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .custom-theme-inputs input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background-color: var(--main-bg);
+      color: var(--text-primary);
+      transition: var(--transition);
+    }
+
+    .custom-theme-inputs input:focus {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .bg-preview {
+      height: 100px;
+      border-radius: 15px;
+      margin-top: 15px;
+      border: 1px solid var(--border-color);
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background-color: var(--main-bg);
+      transition: transform 0.3s ease;
+    }
+
+    .bg-preview:hover {
+      transform: scale(1.02);
+    }
+
+    /* Полоса прокрутки */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: var(--scroll-thumb);
+      border-radius: 10px;
+      border: 3px solid transparent;
+      background-clip: content-box;
+      transition: background-color 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: var(--primary);
+    }
+
+    .chat-list, .chat-window {
+      scrollbar-width: thin;
+      scrollbar-color: var(--scroll-thumb) transparent;
+    }
+    
+    .chat-window::-webkit-scrollbar {
+      width: 10px;
+    }
+    
+    .chat-window::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .chat-window::-webkit-scrollbar-thumb {
+      background-color: var(--scroll-thumb);
+      border-radius: 10px;
+      border: 3px solid transparent;
+      background-clip: content-box;
+    }
+    
+    .chat-window::-webkit-scrollbar-thumb:hover {
+      background-color: var(--primary);
+    }
+
+@media screen and (max-width: 768px) {
+  .sidebar {
+    position: fixed; /* Поверх контента */
+    height: 100%;
+    z-index: 1000;
+    transform: translateX(-100%); /* Изначально скрыта */
+    width: 280px; /* Ширина при открытии */
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2); /* Тень при открытии */
+  }
+
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 0; /* Убедимся, что ширина 0 когда collapsed */
+    padding: 0;
+    border: none;
+    box-shadow: none;
+  }
+
+  .sidebar:not(.collapsed) {
+    transform: translateX(0); /* Показываем */
+  }
+
+  .toggle-sidebar {
+    left: 10px; /* Изначально у левого края с небольшим отступом */
+    background-color: rgba(var(--card-bg-rgb, 37, 38, 44), 0.8); /* Полупрозрачность, если перекрывает контент */
+    backdrop-filter: blur(2px);
+  }
+
+  .sidebar:not(.collapsed) + .toggle-sidebar {
+    left: 290px; /* (ширина сайдбара + отступ) */
+  }
+
+  .main {
+    padding: 15px 10px; /* Уменьшить отступы */
+    margin-left: 0; /* Сайдбар теперь fixed и не сдвигает main */
+  }
+
+  .input-area {
+    max-width: 100%; /* Поле ввода занимает почти всю ширину */
+    padding: 0 5px;
+  }
+  
+  .chat-content {
+    padding: 10px 10px 10px 15px; /* Уменьшить отступы у сообщений */
+  }
+
+  .message-block {
+    max-width: 100%; /* Сообщения могут занимать всю ширину */
+    padding: 10px 12px 10px 15px;
+    font-size: 0.95em;
+  }
+  
+  .modal-content {
+    margin: 10% auto; /* Уменьшить верхний отступ для модалок */
+    padding: 20px;
+    width: 90%; /* Модалки шире на мобильных */
+  }
+
+  .header h1 {
+    font-size: 20px;
+  }
+  .header button {
+    padding: 10px;
+    font-size: 0.9em;
+  }
+  .chat-item {
+    padding: 10px;
+  }
+  .chat-item span {
+    font-size: 0.9em;
+  }
+
+  /* Чтобы тело не скроллилось, когда сайдбар открыт (если он поверх) */
+  body.sidebar-open-mobile .main {
+    /* Можно добавить эффект затемнения или блокировки */
+    /* filter: blur(2px); */ 
+  }
+}
+
+@media screen and (max-width: 480px) {
+  #chatInput {
+    font-size: 15px;
+    padding: 12px 15px;
+  }
+  .input-area button {
+    width: 48px;
+    height: 48px;
+  }
+  .input-area button img {
+    width: 22px;
+    height: 22px;
+  }
+  .header img.logo {
+      width: 70px;
+      margin-bottom: 5px;
+  }
+  .header h1 {
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+  .header button {
+    margin-bottom: 8px;
+    padding: 8px;
+  }
+  .sidebar {
+    padding: 15px;
+    width: 260px; /* Чуть уже для очень маленьких экранов */
+  }
+  .sidebar:not(.collapsed) + .toggle-sidebar {
+    left: 270px; 
+  }
+  #sidebarModelInstallProgressContainer {
+    font-size: 0.9em;
+  }
+}
+  </style>
+  <link rel="stylesheet" id="highlight-light-theme" href="js/highlightjs/default-light.min.css" media="all" disabled>
+  <link rel="stylesheet" id="highlight-dark-theme" href="js/highlightjs/default-dark.min.css" media="all" disabled>
+  
+  <!-- MathJax Configuration -->
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+      }
+    };
+  </script>
+  <!-- Local MathJax files for offline use -->
+  <script src="mathjax-offline/polyfill.min.js"></script>
+  <script id="MathJax-script" async src="mathjax-offline/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <!-- Левая панель (список чатов) -->
+  <div class="sidebar" id="sidebar">
+    <div class="header">
+      <img src="icon/logo.png" alt="Logo" class="logo">
+      <h1 id="headerTitle">S/E Chat</h1>
+      <div class="current-model" id="currentModelDisplay">...</div>
+      <button id="newChat">
+        <img src="icon/plus.png" alt="New Chat" style="width:28px;height:28px;">
+        New Chat
+      </button>
+      <button id="changeModel">
+        <img src="icon/model.png" alt="Change Model" style="width:28px;height:28px;">
+        Change Model
+      </button>
+      <button id="openSettings">
+        <img src="icon/settings.png" alt="Settings" style="width:28px;height:28px;">
+        Settings
+      </button>
+    </div>
+    <div id="sidebarModelInstallProgressContainer" style="display:none; margin-top: 15px; padding: 10px; background-color: var(--card-bg); border-radius: 8px; text-align: center;">
+      <div id="sidebarProgressLabel" style="font-size: 0.9em; margin-bottom: 5px; color: var(--text-secondary);">Installing model...</div>
+      <div class="progress-container" style="height: 10px; background-color: var(--main-bg);">
+        <div id="sidebarProgressFill" class="progress-fill" style="width: 0%; height: 100%;"></div> 
+      </div>
+      <div id="sidebarProgressText" style="font-size: 0.8em; color: var(--text-secondary); margin-top: 3px;">0%</div>
+    </div>
+    <div class="chat-list" id="chatList"></div>
+  </div>
+  
+  <!-- Кнопка переключения панели -->
+  <div class="toggle-sidebar" id="toggleSidebar">◀</div>
+  
+  <!-- Основная область чата -->
+  <div class="main" id="mainContent">
+    <div class="chat-window" id="chatWindow">
+      <div class="drag-overlay" id="dragOverlay">
+        <p>Drop files here</p>
+      </div>
+      <div class="chat-content" id="chatContent"></div>
+    </div>
+    <div class="input-wrapper">
+      <div class="intro-text" id="introText">
+        <p id="introTitle">Hi, I'm S/E Chat</p>
+        <p id="introSubtitle">How can I help you today😊?</p>
+      </div>
+      <div id="attachmentsContainer"></div>
+      <div class="input-area">
+        <button id="imageUploadBtn" title="Attach file">
+          <img src="icon/attach-file.png" alt="Attach file" style="width:65px;height:65px;">
+        </button>
+        <button id="toolsBtn" title="Toggle Tools">
+          <img src="icon/tools.png" alt="Tools" style="width:43px;height:43px;">
+        </button>
+        <input type="file" id="fileInput" multiple style="display: none;">
+        <textarea id="chatInput" placeholder="Enter message..."></textarea>
+        <button id="sendBtn" class="send-btn">
+          <img src="icon/send.png" alt="Send" style="width:50px;height:50px;">
+        </button>
+        <button id="stopBtn" style="display:none;">
+          <img src="icon/stop.png" alt="Stop" style="width:50px;height:50px;">
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Модальное окно для выбора модели -->
+  <div id="modelModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeModelModal" title="Close">&times;</span>
+      <h2 id="modelModalTitle">Change Model</h2>
+      <div id="modelOptionsContainer"></div>
+      <div id="modelCustomContainer"></div>
+    </div>
+  </div>
+  
+  <!-- Модальное окно для настроек -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeSettingsModal" title="Close">&times;</span>
+      <h2 id="settingsModalTitle">Settings</h2>
+      <div>
+        <label for="languageSelect" id="languageLabel">Language:</label>
+        <select id="languageSelect">
+          <option value="en">English</option>
+          <option value="ru">Русский</option>
+        </select>
+      </div>
+      <div style="margin-top:15px;">
+        <label for="defaultModelSelect" id="defaultModelLabel">Default Model:</label>
+        <select id="defaultModelSelect"></select>
+      </div>
+
+      <div style="margin-top:15px;">
+        <label for="modelTemperatureInput" id="modelTemperatureLabel">Model Temperature:</label>
+        <div style="display: flex; align-items: center; gap: 10px; width: 90%; margin-top: 8px;">
+          <input type="range" id="modelTemperatureInput" min="0" max="2" step="0.05" style="flex-grow: 1; height: 20px;">
+          <span id="modelTemperatureValueSpan" style="min-width: 30px; text-align: right;">0.8</span>
+        </div>
+      </div>
+      
+      <!-- Настройки темы -->
+      <div style="margin-top:20px;">
+        <label id="themeLabel">Theme:</label>
+        <div class="theme-options">
+          <div class="theme-option theme-dark active" data-theme="dark">Dark</div>
+          <div class="theme-option theme-light" data-theme="light">Light</div>
+        </div>
+      </div>
+      
+      <div style="margin-top:20px;">
+        <label id="backgroundLabel">Background:</label>
+        <div class="custom-theme-inputs">
+          <input type="file" id="bgImageInput" accept="image/*" style="display:none;">
+          <button id="uploadBgBtn">Upload Image</button>
+          <button id="resetBgBtn">Reset</button>
+        </div>
+        
+        <div class="bg-preview" id="bgPreview">
+          <span id="bgPreviewText">No background</span>
+        </div>
+      </div>
+      
+      <div style="margin-top:20px;">
+        <label>Custom Gradient:</label>
+        <div class="custom-theme-inputs">
+          <input type="color" id="gradientColor1" value="#4166d5">
+          <input type="color" id="gradientColor2" value="#1e1f25">
+        </div>
+        <button id="applyGradientBtn" style="width:100%; margin-top:10px;">Apply Gradient</button>
+      </div>
+      
+      
+      <button id="saveSettingsBtn">Save Settings</button>
+    </div>
+  </div>
+  
+  <script src="js/highlightjs/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script>
+    var markdown = window.markdownit({
+      html: false,
+      linkify: true,
+      typographer: true,
+      breaks: true
+    });
+    markdown.toHTML = markdown.render;
+    const message = ``;
+  </script>
+  
+  <script type="module">
+    import { fetchGeneratedTitle } from './js/titleHandler.js';
+    // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
+    let currentModel = "";
+    let streamAbortController = null;
+    let editingIndex = null;
+    let currentTheme = "dark";
+    let toolsEnabled = false;
+    let isModelInstalling = false;
+    let currentInstallingModelName = null;
+    let globalInstallPercent = 0;
+    let isGeneratingTitle = false;
+
+    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+    function applyHighlightTheme(theme) {
+      const lightThemeLink = document.getElementById('highlight-light-theme');
+      const darkThemeLink = document.getElementById('highlight-dark-theme');
+
+      if (!lightThemeLink || !darkThemeLink) {
+        console.error('Highlight.js theme link elements not found!');
+        return;
+      }
+
+      if (theme === 'light') {
+        lightThemeLink.removeAttribute('disabled');
+        darkThemeLink.setAttribute('disabled', 'disabled');
+      } else { // Default to dark theme
+        darkThemeLink.removeAttribute('disabled');
+        lightThemeLink.setAttribute('disabled', 'disabled');
+      }
+    }
+
+    // --- ЭЛЕМЕНТЫ СТРАНИЦЫ ---
+    const newChatBtn = document.getElementById("newChat");
+    const changeModelBtn = document.getElementById("changeModel");
+    const openSettingsBtn = document.getElementById("openSettings");
+    const closeModelModal = document.getElementById("closeModelModal");
+    const closeSettingsModal = document.getElementById("closeSettingsModal");
+    const chatInput = document.getElementById("chatInput");
+    const fileInput = document.getElementById("fileInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const toolsBtn = document.getElementById("toolsBtn");
+    const chatList = document.getElementById("chatList");
+    const chatContent = document.getElementById("chatContent");
+    const dragOverlay = document.getElementById("dragOverlay");
+    const imageUploadBtn = document.getElementById("imageUploadBtn");
+    const languageSelect = document.getElementById("languageSelect");
+    const defaultModelSelect = document.getElementById("defaultModelSelect");
+    const currentModelDisplay = document.getElementById("currentModelDisplay");
+    const settingsModal = document.getElementById("settingsModal");
+    const modelModal = document.getElementById("modelModal");
+    const modelOptionsContainer = document.getElementById("modelOptionsContainer");
+    const modelCustomContainer = document.getElementById("modelCustomContainer");
+    const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+    const attachmentsContainer = document.getElementById("attachmentsContainer");
+    const introText = document.getElementById("introText");
+    const introTitleEl = document.getElementById("introTitle");
+    const introSubtitleEl = document.getElementById("introSubtitle");
+    const toggleSidebar = document.getElementById("toggleSidebar");
+    const sidebar = document.getElementById("sidebar");
+    const bgImageInput = document.getElementById("bgImageInput");
+    const uploadBgBtn = document.getElementById("uploadBgBtn");
+    const resetBgBtn = document.getElementById("resetBgBtn");
+    const bgPreview = document.getElementById("bgPreview");
+    const bgPreviewText = document.getElementById("bgPreviewText");
+    const gradientColor1 = document.getElementById("gradientColor1");
+    const gradientColor2 = document.getElementById("gradientColor2");
+    const applyGradientBtn = document.getElementById("applyGradientBtn");
+    const mainContent = document.getElementById("mainContent");
+    const modelTemperatureInput = document.getElementById("modelTemperatureInput");
+    const modelTemperatureValueSpan = document.getElementById("modelTemperatureValueSpan");
+
+    const sidebarModelInstallProgressContainer = document.getElementById("sidebarModelInstallProgressContainer");
+    const sidebarProgressLabel = document.getElementById("sidebarProgressLabel");
+    const sidebarProgressFill = document.getElementById("sidebarProgressFill");
+    const sidebarProgressText = document.getElementById("sidebarProgressText");
+
+    let imageFilesBase64 = [];
+    let imageFiles = [];
+    let fileAttachments = [];
+
+    // --- ПЕРЕВОДЫ ---
+    const translations = {
+      en: {
+        headerTitle: "S/E Chat",
+        currentModel: "Current Model: ",
+        newChat: "New Chat",
+        changeModel: "Change Model",
+        settings: "Settings",
+        send: "Send",
+        stop: "Stop",
+        languageLabel: "Language:",
+        defaultModelLabel: "Default Model:",
+        modelTemperatureLabel: "Model Temperature:",
+        modelModalTitle: "Change Model",
+        settingsModalTitle: "Settings",
+        saveSettings: "Save Settings",
+        deleteBtn: "Delete",
+        inputPlaceholder: "Enter message...",
+        copyBtn: "Copy",
+        copiedBtn: "Copied!",
+        attachFile: "Attach file",
+        copyUserMessage: "Copy message",
+        copyAssistantMessage: "Copy answer",
+        dropFilesHere: "Drop files here",
+        customModel: "Add Model",
+        installModel: "Install Model",
+        close: "Close",
+        newChatTitle: "New Chat",
+        introTitle: "Hi, I'm S/E Chat",
+        introSubtitle: "How can I help you today😊?",
+        themeLabel: "Theme:",
+        backgroundLabel: "Background:",
+        inputPlaceholderGeneratingTitle: "Generating chat title, please wait...",
+      },
+      ru: {
+        headerTitle: "S/E Чат",
+        currentModel: "Текущая модель: ",
+        newChat: "Новый чат",
+        changeModel: "Сменить модель",
+        settings: "Настройки",
+        send: "Отправить",
+        stop: "Остановить",
+        languageLabel: "Язык:",
+        defaultModelLabel: "Модель по умолчанию:",
+        modelTemperatureLabel: "Температура модели:",
+        modelModalTitle: "Сменить модель",
+        settingsModalTitle: "Настройки",
+        saveSettings: "Сохранить настройки",
+        deleteBtn: "Удалить",
+        inputPlaceholder: "Введите сообщение...",
+        copyBtn: "Копировать",
+        copiedBtn: "Скопировано!",
+        attachFile: "Прикрепить файл",
+        copyUserMessage: "Копировать сообщение",
+        copyAssistantMessage: "Копировать ответ",
+        dropFilesHere: "Перетащите файлы сюда",
+        customModel: "Добавить модель",
+        installModel: "Установить",
+        close: "Закрыть",
+        newChatTitle: "Новый чат",
+        introTitle: "Привет, я S/E Чат",
+        introSubtitle: "Чем могу помочь😊?",
+        themeLabel: "Тема:",
+        backgroundLabel: "Фон:",
+        inputPlaceholderGeneratingTitle: "Генерация заголовка чата, пожалуйста подождите...",
+      }
+    };
+
+    function updateInterfaceLanguage(lang) {
+      document.getElementById("headerTitle").textContent = translations[lang].headerTitle;
+      newChatBtn.innerHTML = `<img src="icon/plus.png" alt="New Chat" style="width:28px;height:28px;"> ${translations[lang].newChat}`;
+      changeModelBtn.innerHTML = `<img src="icon/model.png" alt="Change Model" style="width:28px;height:28px;"> ${translations[lang].changeModel}`;
+      openSettingsBtn.innerHTML = `<img src="icon/settings.png" alt="Settings" style="width:28px;height:28px;"> ${translations[lang].settings}`;
+      chatInput.placeholder = translations[lang].inputPlaceholder;
+      introTitleEl.textContent = translations[lang].introTitle;
+      introSubtitleEl.textContent = translations[lang].introSubtitle;
+      document.getElementById("settingsModalTitle").textContent = translations[lang].settingsModalTitle;
+      document.getElementById("languageLabel").textContent = translations[lang].languageLabel;
+      document.getElementById("defaultModelLabel").textContent = translations[lang].defaultModelLabel;
+      document.getElementById("modelTemperatureLabel").textContent = translations[lang].modelTemperatureLabel;
+      saveSettingsBtn.textContent = translations[lang].saveSettings;
+      document.getElementById("modelModalTitle").textContent = translations[lang].modelModalTitle;
+      dragOverlay.querySelector('p').textContent = translations[lang].dropFilesHere;
+      imageUploadBtn.title = translations[lang].attachFile;
+      closeModelModal.title = translations[lang].close;
+      closeSettingsModal.title = translations[lang].close;
+      currentModelDisplay.textContent = translations[lang].currentModel + (currentModel || "—");
+      document.getElementById("themeLabel").textContent = translations[lang].themeLabel;
+      document.getElementById("backgroundLabel").textContent = translations[lang].backgroundLabel;
+      uploadBgBtn.textContent = translations[lang].installModel;
+      resetBgBtn.textContent = translations[lang].deleteBtn;
+    }
+
+    function autoResize() {
+      chatInput.style.height = 'auto';
+      const maxHeight = 200;
+      chatInput.style.height = Math.min(chatInput.scrollHeight, maxHeight) + 'px';
+    }
+
+    window.copyMessageContent = function(btn) {
+      const messageBlock = btn.closest('.message-block');
+      if (!messageBlock) return;
+      const texts = Array.from(messageBlock.querySelectorAll('.chat-text'))
+                        .map(el => el.innerText)
+                        .join("\n");
+      navigator.clipboard.writeText(texts).then(() => {
+        const lang = languageSelect.value;
+        const oldHTML = btn.innerHTML;
+        btn.innerHTML = `<img src="icon/copy.png" alt="Copy" style="width:24px; height:24px;"> ${translations[lang].copiedBtn}`;
+        setTimeout(() => {
+          btn.innerHTML = oldHTML;
+        }, 1500);
+      });
+    }
+    
+    window.copyCode = function(btn) {
+      const codeElement = btn.parentElement.querySelector('code');
+      if (!codeElement) return;
+      const codeText = codeElement.textContent;
+      navigator.clipboard.writeText(codeText).then(() => {
+        const lang = languageSelect.value;
+        const oldHTML = btn.innerHTML;
+        btn.innerHTML = translations[lang].copiedBtn;
+        setTimeout(() => {
+          btn.innerHTML = oldHTML;
+        }, 1500);
+      });
+    }
+    
+    window.editUserMessage = function(btn) {
+      const messageBlock = btn.closest('.message-block');
+      if (!messageBlock) return;
+      const chatTextElement = messageBlock.querySelector('.chat-text');
+      if (!chatTextElement) return;
+      const originalText = chatTextElement.innerText.trim();
+      const chat = chats.find(c => c.id === activeChatId);
+      if (!chat) return;
+      const msgIndex = chat.history.findIndex(m =>
+        m.role.toLowerCase() === "user" &&
+        (m.display || "").trim() === originalText
+      );
+      if (msgIndex === -1) return;
+      chat.history = chat.history.slice(0, msgIndex + 1);
+      editingIndex = msgIndex;
+      chatInput.value = originalText;
+      autoResize();
+      updateChatWindow();
+      chatInput.focus();
+    }
+    
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+    
+    function parseContentForCodeBlocks(content, modelNameForMessage = '') {
+      content = content.replace(/<(?:think|thought)>[\s\S]*?<\/(?:think|thought)>/gi, "");
+      const parts = content.split("```");
+      let isCode = false;
+      let result = "";
+      for (let i = 0; i < parts.length; i++) {
+        let segment = parts[i];
+        if (!isCode) {
+          // >>> НАЧАЛО КОСТЫЛЯ ДЛЯ DEEPSEEK MATHJAX
+          let isDeepseekModel = false;
+          if (modelNameForMessage && modelNameForMessage.toLowerCase().includes("deepseek")) {
+            isDeepseekModel = true;
+          }
+          // Note: The original request had a more complex way to find messageObject or use currentModel.
+          // Since modelNameForMessage is now directly passed, this simplifies.
+          // If modelNameForMessage is empty, isDeepseekModel remains false.
+
+          if (isDeepseekModel) {
+            console.log('[MathJaxDebug] Deepseek model detected, applying MathJax content fixes for [] and [[]]. Segment before fix:', segment);
+            // Костыль для одинарных квадратных скобок [formula] -> $formula$
+            // Ищет [содержимое_с_мат_символами_без_внутренних_скобок_и_долларов] НЕ ЗА КОТОРЫМ СЛЕДУЕТ '('
+            segment = segment.replace(/\[((?:[^\$\(\)\[\]]|\[(?:\^|\_|[a-zA-Z0-9]))*?[\^_a-zA-Z0-9\\](?:[^\$\(\)\[\]]|\[(?:\^|\_|[a-zA-Z0-9]))*?)\](?!\s*\()/g, (match, p1) => {
+              if (p1.includes('$')) return match;
+              if (/[\^_\{\}]|(?:\b(?:frac|sqrt|sum|int|lim|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|omega|infty|pm|times|div|approx|neq|leq|geq|equiv|forall|exists|nabla|partial)\b)/.test(p1)) {
+                console.log(`[MathJaxDebug] Deepseek-костыль (single_bracket): [${p1}] -> $${p1}$`);
+                return `$${p1}$`;
+              }
+              return match; 
+            });
+
+            // Костыль для двойных квадратных скобок [[formula]] -> $$formula$$
+            segment = segment.replace(/\[\[((?:[^\$\(\)\[\]]|\[(?:\^|\_|[a-zA-Z0-9]))*?[\^_a-zA-Z0-9\\](?:[^\$\(\)\[\]]|\[(?:\^|\_|[a-zA-Z0-9]))*?)\]\](?!\s*\()/g, (match, p1) => {
+              if (p1.includes('$')) return match;
+              if (/[\^_\{\}]|(?:\b(?:frac|sqrt|sum|int|lim|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|omega|infty|pm|times|div|approx|neq|leq|geq|equiv|forall|exists|nabla|partial)\b)/.test(p1)) {
+                console.log(`[MathJaxDebug] Deepseek-костыль (double_bracket): [[${p1}]] -> $$${p1}$$`);
+                return `$$${p1}$$`;
+              }
+              return match;
+            });
+            console.log('[MathJaxDebug] Segment after fix:', segment);
+          }
+          // <<< КОНЕЦ КОСТЫЛЯ ДЛЯ DEEPSEEK MATHJAX
+
+          let rendered = window.markdown.render(segment.trim());
+          result += `<div class="chat-text">${rendered}</div>`;
+        } else {
+          let escapedCode = escapeHtml(segment);
+          result += `
+            <div class="code-container">
+              <button class="copy-btn" onclick="copyCode(this)">
+                <img src="icon/copy.png" alt="Copy" style="width:24px; height:24px;">
+              </button>
+              <pre><code>${escapedCode}</code></pre>
+            </div>
+          `;
+        }
+        isCode = !isCode;
+      }
+      return result;
+    }
+    
+    function updateAttachmentsPreview() {
+      attachmentsContainer.innerHTML = "";
+      imageFiles.forEach((item, index) => {
+        const preview = document.createElement("div");
+        preview.className = "attachment-preview";
+        const img = document.createElement("img");
+        img.src = item.data;
+        img.loading = "lazy";
+        preview.appendChild(img);
+        const cancelBtn = document.createElement("button");
+        cancelBtn.className = "cancel-btn";
+        cancelBtn.innerHTML = "×";
+        cancelBtn.addEventListener("click", () => {
+          imageFiles.splice(index, 1);
+          imageFilesBase64.splice(index, 1);
+          updateAttachmentsPreview();
+        });
+        preview.appendChild(cancelBtn);
+        attachmentsContainer.appendChild(preview);
+      });
+      fileAttachments.forEach((item, index) => {
+        const preview = document.createElement("div");
+        preview.className = "attachment-preview file-preview";
+        const iconImg = document.createElement("img");
+        iconImg.src = "icon/file.png";
+        iconImg.style.width = "40px";
+        iconImg.style.height = "40px";
+        iconImg.style.objectFit = "contain";
+        preview.appendChild(iconImg);
+        const fileNameSpan = document.createElement("span");
+        fileNameSpan.textContent = item.name;
+        preview.appendChild(fileNameSpan);
+        const cancelBtn = document.createElement("button");
+        cancelBtn.className = "cancel-btn";
+        cancelBtn.innerHTML = "×";
+        cancelBtn.addEventListener("click", () => {
+          fileAttachments.splice(index, 1);
+          updateAttachmentsPreview();
+        });
+        preview.appendChild(cancelBtn);
+        attachmentsContainer.appendChild(preview);
+      });
+      attachmentsContainer.style.display =
+        (imageFiles.length === 0 && fileAttachments.length === 0) ? "none" : "flex";
+    }
+    
+    function handleDroppedFiles(files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/')) {
+          const blobUrl = URL.createObjectURL(file);
+          imageFiles.push({ data: blobUrl, name: file.name });
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            const base64 = dataUrl.split(',')[1];
+            imageFilesBase64.push(base64);
+            updateAttachmentsPreview();
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    }
+    
+    function handleNonImageFiles(files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const textContent = e.target.result;
+            fileAttachments.push({ name: file.name, content: textContent });
+            updateAttachmentsPreview();
+          };
+          reader.readAsText(file);
+        }
+      }
+    }
+    
+    let chats = [];
+    let activeChatId = null;
+    let chatIdCounter = 0;
+    let defaultSettings;
+    
+    function getTruncatedTitle(chat) {
+      const lang = languageSelect.value;
+      // Если заголовок был сгенерирован AI (chat.titleGenerated === true) 
+      // и он не пустой (chat.chatnamess) и не равен дефолтному (на случай, если генерация не удалась и сервер вернул дефолт)
+      if (chat.titleGenerated && chat.chatnamess && chat.chatnamess !== translations[lang].newChatTitle) {
+        return chat.chatnamess; // Возвращаем AI-сгенерированный заголовок как есть (сервер его ограничил ~100 символами)
+      }
+
+      // В противном случае, пытаемся взять из первого сообщения пользователя (без клиентской обрезки)
+      for (let msg of chat.history) {
+        if (msg.role && msg.role.toLowerCase() === "user" && msg.display) {
+          return msg.display.trim(); // Возвращаем как есть
+        }
+      }
+      
+      // Если ничего не подошло (например, нет сообщений пользователя или сгенерированного заголовка)
+      // или если chat.chatnamess все еще дефолтный.
+      // Возвращаем chat.chatnamess если он есть (например, старый заголовок до titleGenerated), иначе дефолтный.
+      return chat.chatnamess || translations[lang].newChatTitle;
+    }
+    
+    function updateChatWindow() {
+      const chat = chats.find(c => c.id === activeChatId);
+      if (!chat) {
+        chatContent.innerHTML = "";
+        updateInputPosition();
+        return;
+      }
+      if (chat.history.length === 0) {
+        chatContent.innerHTML = "";
+        updateInputPosition();
+        return;
+      }
+      let html = "";
+      const truncatedTitle = getTruncatedTitle(chat);
+      const currentChatModel = (chat.modelhs && chat.modelhs.length > 0) ? chat.modelhs[chat.modelhs.length - 1] : currentModel;
+      const lang = languageSelect.value;
+      html += `<p style="margin-bottom:20px; color:var(--text-secondary);"><strong>${truncatedTitle}</strong> (${translations[lang].currentModel}${currentChatModel})</p>`;
+      chat.history.forEach(m => {
+        let role = m.role || "unknown";
+        let displayedRole = role;
+        
+        if (role.toLowerCase() === "assistant") {
+          let usedModel = m.modelUsed ? m.modelUsed : currentChatModel;
+          displayedRole = `assistant (${usedModel})`;
+        } else if (role.toLowerCase() === "user") {
+          displayedRole = "user";
+        }
+        let contentHTML = "";
+        if (role.toLowerCase() === "user" && m.display) {
+          contentHTML = `<div class="chat-text">${escapeHtml(m.display)}</div>`;
+        } else {
+          contentHTML = parseContentForCodeBlocks(m.content || "", m.modelUsed || currentModel);
+        }
+        if (m.images && Array.isArray(m.images)) {
+          m.images.forEach((imgData) => {
+            let mimeType = "image/png";
+            if (imgData.startsWith("/9j")) mimeType = "image/jpeg";
+            else if (imgData.startsWith("R0lGOD")) mimeType = "image/gif";
+            else if (imgData.startsWith("AAAB")) mimeType = "image/x-icon";
+            contentHTML += `<div style="margin-top:15px;"><img loading="lazy" src="data:${mimeType};base64,${imgData}" style="max-width:300px; border-radius:8px; border:1px solid var(--border-color);"></div>`;
+          });
+        }
+        if (m.files && Array.isArray(m.files)) {
+          m.files.forEach(file => {
+            contentHTML += `
+              <div class="file-preview" style="display:inline-block; margin-top:15px; padding:8px; border-radius:10px; background-color:var(--card-bg);">
+                <img src="icon/file.png" alt="File" style="width:40px; height:40px; object-fit:contain;">
+                <span>${file.name}</span>
+              </div>
+            `;
+          });
+        }
+        const copyTitle = (role.toLowerCase() === "assistant")
+          ? translations[lang].copyAssistantMessage
+          : translations[lang].copyUserMessage;
+        let buttonsHTML = `
+          <button class="message-copy-btn" onclick="copyMessageContent(this)" title="${copyTitle}">
+            <img src="icon/copy.png" alt="Copy" style="width:24px; height:24px;">
+          </button>
+        `;
+        if (role.toLowerCase() === "user") {
+          buttonsHTML += `
+            <button class="message-edit-btn" onclick="editUserMessage(this)" title="Редактировать">
+              <img src="icon/edit.png" alt="Редактировать" style="width:24px; height:24px;">
+            </button>
+          `;
+        }
+        html += `
+          <div class="message-block ${role.toLowerCase() === "assistant" ? "assistant-message" : (role.toLowerCase() === "user" ? "user-message" : "other-message")}">
+            <div class="role">${displayedRole}:</div>
+            ${contentHTML}
+            <div class="message-buttons">
+              ${buttonsHTML}
+            </div>
+          </div>
+        `;
+      });
+      chatContent.innerHTML = html;
+      
+      // Обновляем MathJax после изменения содержимого
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([chatContent])
+          .catch((err) => {
+            console.error('MathJax typeset failed:', err.message);
+          });
+      } else if (chatContent.innerText.includes('$')) { // Простое условие, чтобы не логировать постоянно
+         console.warn('MathJax or typesetPromise not available on window, but $ symbols detected.');
+      }
+
+    // Add this for highlight.js
+    if (window.hljs) {
+      hljs.highlightAll();
+    }
+      
+      updateInputPosition();
+    }
+    
+    function updateInputPosition() {
+      const mainEl = document.querySelector('.main');
+      const chat = chats.find(c => c.id === activeChatId);
+      if (!chat || chat.history.length === 0) {
+        mainEl.classList.add('empty-chat');
+        introText.style.display = "block";
+        setTimeout(() => {
+          introText.style.opacity = "1";
+          introText.style.transform = "translateY(0)";
+        }, 100);
+      } else {
+        mainEl.classList.remove('empty-chat');
+        introText.style.display = "none";
+      }
+    }
+    
+    function updateChatItemText(chatData) {
+      if (chatData.itemElement) {
+        const lang = languageSelect.value;
+        const truncatedTitle = getTruncatedTitle(chatData);
+        const currentChatModel = (chatData.modelhs && chatData.modelhs.length > 0) ? chatData.modelhs[chatData.modelhs.length - 1] : currentModel;
+        chatData.itemElement.innerHTML = `<span>${truncatedTitle} (${translations[lang].currentModel}${currentChatModel})</span>`;
+        if (!chatData.itemElement.querySelector('.chat-delete-btn')) {
+          const delBtn = document.createElement("button");
+          delBtn.classList.add("chat-delete-btn");
+          delBtn.setAttribute('title', translations[lang].deleteBtn);
+          delBtn.innerHTML = `<img src="icon/delete.png" alt="${translations[lang].deleteBtn}" style="width:24px;height:24px;">`;
+          delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteChat(chatData.id);
+          });
+          chatData.itemElement.appendChild(delBtn);
+        }
+      }
+    }
+    
+    async function loadChats() {
+      try {
+        const response = await fetch("/chats");
+        const chatIDs = await response.json();
+        for (const id of chatIDs) {
+          const res = await fetch(`/chats/${id}`);
+          const chatData = await res.json();
+          chats.push(chatData);
+          addChatToList(chatData);
+          chatIdCounter = Math.max(chatIdCounter, parseInt(chatData.id) + 1);
+        }
+      } catch (error) {
+        console.error("Error loading chats:", error);
+      }
+    }
+    
+    async function saveChat(chat) {
+      try {
+        const res = await fetch(`/chats/${chat.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(chat)
+        });
+        await res.json();
+        updateChatItemText(chat);
+      } catch (error) {
+        console.error("Error saving chat:", error);
+      }
+    }
+    
+    async function deleteChat(chatId) {
+      try {
+        const response = await fetch(`/delete-chat/${chatId}`, { method: 'DELETE' });
+        const data = await response.json();
+        if (data.status === "success") {
+          chats = chats.filter(c => c.id !== chatId);
+          const item = document.querySelector(`.chat-item[data-chat-id='${chatId}']`);
+          if (item) item.remove();
+          if (activeChatId === chatId) {
+            activeChatId = null;
+            chatContent.innerHTML = "";
+            updateInputPosition();
+          }
+        } else {
+          alert("Failed to delete chat");
+        }
+      } catch (error) {
+        console.error("Error deleting chat:", error);
+      }
+    }
+    
+    function addChatToList(chatData) {
+      const chatItem = document.createElement('div');
+      chatItem.classList.add('chat-item');
+      chatItem.setAttribute("data-chat-id", chatData.id);
+      chatData.itemElement = chatItem;
+      updateChatItemText(chatData);
+      chatItem.addEventListener('click', () => switchChat(chatData.id));
+      chatList.insertBefore(chatItem, chatList.firstChild);
+      
+      // Анимация появления
+      setTimeout(() => {
+        chatItem.classList.add('visible');
+      }, 10);
+    }
+    
+    function switchChat(chatId) {
+      document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('active'));
+      activeChatId = chatId;
+      const chatItem = document.querySelector(`.chat-item[data-chat-id='${chatId}']`);
+      if (chatItem) chatItem.classList.add('active');
+      updateChatWindow();
+    }
+    
+    async function createNewChat() {
+      document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('active'));
+      const lang = languageSelect.value;
+      const chat = {
+        id: chatIdCounter.toString(),
+        chatnamess: translations[lang].newChatTitle,
+        history: [],
+        modelhs: [currentModel]
+      };
+      chats.push(chat);
+      addChatToList(chat);
+      activeChatId = chat.id;
+      updateChatWindow();
+      await saveChat(chat);
+      chatIdCounter++;
+    }
+    
+    async function saveSettings() {
+      const newSettings = {
+        language: languageSelect.value,
+        default_model: defaultModelSelect.value,
+        model_temperature: parseFloat(modelTemperatureInput.value),
+        background: {
+          type: localStorage.getItem('backgroundType') || 'none',
+          image: localStorage.getItem('backgroundImage') || null,
+          gradient: {
+            color1: localStorage.getItem('gradientColor1') || '#4166d5',
+            color2: localStorage.getItem('gradientColor2') || '#1e1f25'
+          }
+        }
+      };
+      try {
+        const response = await fetch("/settings", {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newSettings)
+        });
+        const data = await response.json();
+        if (data.status === "success") {
+          defaultSettings = newSettings;
+          currentModel = newSettings.default_model;
+          currentModelDisplay.textContent = translations[languageSelect.value].currentModel + currentModel;
+          const chat = chats.find(c => c.id === activeChatId);
+          if (chat) {
+            chat.modelhs.push(currentModel);
+            updateChatWindow();
+            await saveChat(chat);
+          }
+          updateInterfaceLanguage(languageSelect.value);
+          settingsModal.classList.remove('show');
+          setTimeout(() => {
+            settingsModal.style.display = 'none';
+          }, 300);
+        } else {
+          alert("Failed to save settings");
+        }
+      } catch (error) {
+        console.error("Error saving settings:", error);
+      }
+    }
+    
+    async function loadSettings() {
+      try {
+        const response = await fetch("/settings", { cache: "no-cache" });
+        const settingsData = await response.json();
+        defaultSettings = settingsData;
+        languageSelect.value = settingsData.language || "en";
+        currentModel = settingsData.default_model || "";
+        await loadInstalledModelsForSettings(); // This ensures defaultModelSelect is populated
+        defaultModelSelect.value = settingsData.default_model || ""; // Set the value after options are loaded
+        modelTemperatureInput.value = settingsData.model_temperature !== undefined ? settingsData.model_temperature : 0.8;
+        if (modelTemperatureValueSpan) modelTemperatureValueSpan.textContent = parseFloat(modelTemperatureInput.value).toFixed(2);
+        updateInterfaceLanguage(languageSelect.value);
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.body.setAttribute('data-theme', savedTheme);
+        currentTheme = savedTheme; // Ensure currentTheme is updated
+        applyHighlightTheme(currentTheme);
+        
+        // Загрузка фона из настроек
+        if (settingsData.background) {
+          const bg = settingsData.background;
+          localStorage.setItem('backgroundType', bg.type || 'none');
+          if (bg.type === 'image' && bg.image) {
+            localStorage.setItem('backgroundImage', bg.image);
+          } else if (bg.type === 'gradient') {
+            localStorage.setItem('gradientColor1', bg.gradient.color1);
+            localStorage.setItem('gradientColor2', bg.gradient.color2);
+          }
+        }
+        
+        updateBackgroundPreview();
+        applyBackground();
+        
+        // Загрузка настроек автоматических инструментов
+        // automaticToolsToggle.checked = settingsData.automatic_tools || false; // Удалено
+        // toolsEnabled = automaticToolsToggle.checked; // Удалено, toolsEnabled инициализируется как false глобально
+        toolsBtn.classList.toggle('active', toolsEnabled); // Убедимся, что кнопка отражает начальное состояние toolsEnabled (false)
+        
+      } catch (error) {
+        console.error("Error loading settings:", error);
+      }
+    }
+    
+    async function loadInstalledModelsForSettings() {
+      try {
+        const response = await fetch("/installed-models");
+        const models = await response.json();
+        defaultModelSelect.innerHTML = "";
+        models.forEach(model => {
+          const opt = document.createElement("option");
+          opt.value = model;
+          opt.textContent = model;
+          defaultModelSelect.appendChild(opt);
+        });
+        defaultModelSelect.value = defaultSettings.default_model || "";
+        currentModelDisplay.textContent = translations[languageSelect.value].currentModel + (currentModel || "—");
+      } catch (error) {
+        console.error("Error loading models for settings:", error);
+      }
+    }
+    
+    async function changeModel(model) {
+      try {
+        const resp = await fetch("/switch-model", {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model })
+        });
+        const data = await resp.json();
+        if (data.status === "success") {
+          currentModel = model;
+          currentModelDisplay.textContent = translations[languageSelect.value].currentModel + currentModel;
+          const chat = chats.find(c => c.id === activeChatId);
+          if (chat) {
+            chat.modelhs.push(model);
+            updateChatWindow();
+            await saveChat(chat);
+          }
+        } else {
+          alert("Failed to switch model");
+        }
+      } catch (error) {
+        console.error("Error switching model:", error);
+      }
+    }
+    
+    async function loadInstalledModels() {
+      try {
+        const lang = languageSelect.value;
+        const resp = await fetch("/installed-models");
+        const models = await resp.json();
+        modelOptionsContainer.innerHTML = "";
+        modelCustomContainer.innerHTML = "";
+        models.forEach(m => {
+          const div = document.createElement("div");
+          div.classList.add("model-option");
+          div.innerHTML = `<span>${m}</span>`;
+          div.addEventListener('click', () => {
+            changeModel(m);
+            modelModal.classList.remove('show');
+            setTimeout(() => {
+              modelModal.style.display = 'none';
+            }, 300);
+          });
+          const delBtn = document.createElement("button");
+          delBtn.setAttribute('title', translations[lang].deleteBtn);
+          delBtn.innerHTML = `<img src="icon/delete.png" alt="${translations[lang].deleteBtn}" style="width:40px;height:40px;">`;
+          delBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await deleteModel(m);
+            loadInstalledModels();
+          });
+          div.appendChild(delBtn);
+          modelOptionsContainer.appendChild(div);
+        });
+        const customDiv = document.createElement("div");
+        customDiv.classList.add("model-option");
+        customDiv.innerHTML = `<span>${translations[lang].customModel}</span>`;
+        customDiv.addEventListener('click', () => {
+          if (!document.getElementById('customInput')) {
+            const customInput = document.createElement("input");
+            customInput.type = "text";
+            customInput.placeholder = "e.g. smollm:135m";
+            customInput.id = "customInput";
+            customInput.classList.add("custom-input");
+            const installBtn = document.createElement("button");
+            installBtn.innerText = translations[lang].installModel;
+            installBtn.classList.add("install-btn");
+            installBtn.addEventListener("click", async () => {
+              const modelName = customInput.value.trim();
+              if (modelName) {
+                await installModelStream(modelName);
+              }
+            });
+            modelCustomContainer.innerHTML = "";
+            modelCustomContainer.appendChild(customInput);
+            modelCustomContainer.appendChild(installBtn);
+          }
+        });
+        modelOptionsContainer.appendChild(customDiv);
+      } catch (error) {
+        console.error("Error loading installed models:", error);
+      }
+    }
+    
+    async function deleteModel(m) {
+      try {
+        const resp = await fetch("/delete-model", {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: m })
+        });
+        const data = await resp.json();
+        if (data.status !== "success") {
+          alert("Failed to delete model");
+        }
+      } catch (error) {
+        console.error("Error deleting model:", error);
+      }
+    }
+    
+    async function installModelStream(modelName) {
+     isModelInstalling = true;
+     currentInstallingModelName = modelName;
+     globalInstallPercent = 0;
+
+     if (sidebarProgressLabel) sidebarProgressLabel.textContent = `Installing ${modelName}...`;
+     if (sidebarProgressFill) sidebarProgressFill.style.width = '0%';
+     if (sidebarProgressText) sidebarProgressText.textContent = '0%';
+
+     // Очистка контейнера в модальном окне и создание нового прогресс-бара там
+     modelCustomContainer.innerHTML = ''; // Очищаем предыдущий прогресс, если был
+     const progressContainerModal = document.createElement("div");
+     progressContainerModal.className = "progress-container";
+     const progressFillModal = document.createElement("div");
+     progressFillModal.className = "progress-fill";
+     const progressLabelModal = document.createElement("div");
+     progressLabelModal.className = "progress-label";
+     progressLabelModal.textContent = "0%";
+     progressContainerModal.appendChild(progressFillModal);
+     progressContainerModal.appendChild(progressLabelModal);
+     modelCustomContainer.appendChild(progressContainerModal);
+      let currentPercent = 0; // This was part of the original code, ensure it's kept if used below.
+      let currentSpeed = ""; // This was part of the original code, ensure it's kept if used below.
+      try {
+        const resp = await fetch("/install-model-stream", {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: modelName })
+        });
+        const reader = await resp.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let done = false;
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+          if (!value) continue;
+          const chunk = decoder.decode(value);
+          chunk.split("\n\n").forEach(line => {
+            if (line.startsWith("data: ")) {
+              let dataStr = line.substring(6).trim();
+              if (dataStr) {
+                const percentMatch = dataStr.match(/(\d+)%/);
+                if (percentMatch) {
+                  currentPercent = parseInt(percentMatch[1], 10);
+                  // progressFill.style.width = currentPercent + "%"; // Old modal progress
+                }
+                const speedMatch = dataStr.match(/(\d+(?:\.\d+)?\s*(?:MB\/s|KB\/s|GB\/s))/i);
+                if (speedMatch) {
+                  currentSpeed = speedMatch[1];
+                }
+                
+                globalInstallPercent = currentPercent;
+                let progressDisplayText = currentSpeed ? `${currentPercent}% | ${currentSpeed}` : `${currentPercent}%`;
+
+                // Обновляем прогресс в модальном окне
+                progressFillModal.style.width = currentPercent + "%";
+                progressLabelModal.textContent = progressDisplayText;
+
+                // Обновляем прогресс на боковой панели
+                if (sidebarProgressFill) sidebarProgressFill.style.width = currentPercent + "%";
+                if (sidebarProgressText) sidebarProgressText.textContent = progressDisplayText;
+
+                // Показываем/скрываем индикатор на боковой панели в зависимости от видимости модального окна
+                if (modelModal.style.display === 'none' || !modelModal.classList.contains('show')) {
+                  if (sidebarModelInstallProgressContainer) sidebarModelInstallProgressContainer.style.display = 'block';
+                } else {
+                  if (sidebarModelInstallProgressContainer) sidebarModelInstallProgressContainer.style.display = 'none';
+                }
+
+                if (dataStr === "DONE") {
+                  progressFillModal.style.width = "100%"; // Ensure modal shows 100%
+                  progressLabelModal.textContent = progressLabelModal.textContent; // Keep final text (speed might be lost here, but ok)
+                  
+                  if (sidebarProgressFill) sidebarProgressFill.style.width = "100%";
+                  if (sidebarProgressText) sidebarProgressText.textContent = progressLabelModal.textContent; 
+
+                  loadInstalledModels();
+                  setTimeout(() => {
+                    // No need to reset modal progress bar here as modelCustomContainer might be cleared or reused
+                    if (sidebarModelInstallProgressContainer) sidebarModelInstallProgressContainer.style.display = 'none';
+                    isModelInstalling = false;
+                    currentInstallingModelName = null;
+                    // Reset globalInstallPercent for the next run
+                    globalInstallPercent = 0; 
+                  }, 2000); 
+                  modelModal.classList.remove('show');
+                  setTimeout(() => {
+                    modelModal.style.display = 'none';
+                  }, 300); // This delay should be less than the one above to hide modal first
+                }
+              }
+            }
+          });
+        }
+      } catch (error) {
+        progressLabelModal.textContent = "Error installing model.";
+        if (sidebarProgressLabel) sidebarProgressLabel.textContent = 'Error!';
+        if (sidebarProgressText) sidebarProgressText.textContent = 'Failed';
+        if (sidebarModelInstallProgressContainer && (modelModal.style.display === 'none' || !modelModal.classList.contains('show'))) {
+           sidebarModelInstallProgressContainer.style.display = 'block'; // Показать ошибку и на сайдбаре
+        }
+        // Добавить задержку перед сбросом флагов и скрытием, чтобы пользователь увидел ошибку
+        setTimeout(() => {
+           if (sidebarModelInstallProgressContainer) sidebarModelInstallProgressContainer.style.display = 'none';
+           isModelInstalling = false;
+           currentInstallingModelName = null;
+        }, 5000);
+        console.error("Error installing model:", error);
+      }
+    }
+    
+    // --- ФУНКЦИИ ДЛЯ РАБОТЫ С ИНСТРУМЕНТАМИ ---
+    function toggleTools() {
+      toolsEnabled = !toolsEnabled;
+      toolsBtn.classList.toggle('active', toolsEnabled);
+    }
+
+    async function executeToolCall(toolName, parameters) {
+      try {
+        const response = await fetch('/api/tools', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            tool: toolName,
+            parameters: parameters
+          })
+        });
+
+        const result = await response.json();
+        return response.ok ? result.result : `Ошибка: ${result.error}`;
+      } catch (error) {
+        return `Ошибка выполнения: ${error.message}`;
+      }
+    }
+
+    function parseToolCalls(text) {
+      const toolCallRegex = /\[TOOL_CALL\]\s*(\w+)\s*\(([^)]*)\)/g;
+      const calls = [];
+      let match;
+
+      while ((match = toolCallRegex.exec(text)) !== null) {
+        const toolName = match[1];
+        const paramsStr = match[2].trim();
+        console.log('[parseToolCalls] Original paramsStr:', paramsStr);
+        
+        let parameters = {};
+        let attemptedJsonString = ''; // Для логирования строки, на которой произошел сбой
+
+        try {
+          if (paramsStr) {
+            if (paramsStr.startsWith('{') && paramsStr.endsWith('}')) {
+              // Попытка 1: Предполагаем, что paramsStr - это уже валидный JSON объект
+              attemptedJsonString = paramsStr;
+              console.log('[parseToolCalls] Attempting direct JSON.parse on (already wrapped):', attemptedJsonString);
+              parameters = JSON.parse(attemptedJsonString);
+            } else {
+              // Попытка 2: "Костыль" для строк вида "ключ": "значение"
+              // Экранируем все обратные слеши в paramsStr.
+              let processedParams = paramsStr.replace(/\\/g, '\\\\'); // Corrected global replace
+              console.log('[parseToolCalls] paramsStr after global slash escape (\\ -> \\\\):', processedParams);
+
+              attemptedJsonString = `{${processedParams}}`;
+              console.log('[parseToolCalls] Attempting JSON.parse on (wrapped and escaped):', attemptedJsonString);
+              parameters = JSON.parse(attemptedJsonString);
+            }
+          }
+          calls.push({ toolName, parameters });
+        } catch (e) {
+          console.error('Ошибка парсинга параметров инструмента (parseToolCalls):', e.message);
+          console.error('Исходная строка параметров (paramsStr):', paramsStr);
+          console.error('Строка, на которой произошел сбой JSON.parse:', attemptedJsonString);
+          calls.push({ toolName, parameters: {} }); 
+        }
+      }
+      return calls;
+    }
+
+async function sendMessage() {
+    const originalMsg = chatInput.value.trim();
+    if (!originalMsg && imageFilesBase64.length === 0 && fileAttachments.length === 0) {
+        return;
+    }
+    if (activeChatId === null) { // Добавим проверку и создание чата, если нужно
+        console.warn("activeChatId is null in sendMessage. Attempting to create a new chat.");
+        await createNewChat();
+        if (activeChatId === null) {
+            console.error("Failed to create or assign activeChatId. Aborting sendMessage.");
+            return;
+        }
+    }
+
+    const chat = chats.find(c => c.id === activeChatId);
+    if (!chat) {
+        console.error("Chat not found for activeChatId:", activeChatId, ". Aborting sendMessage.");
+        return;
+    }
+
+    const oneLineMsg = originalMsg.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+    chatInput.value = ""; // Очищаем поле ввода сразу
+    autoResize();
+
+    let fullText = oneLineMsg;
+    if (fileAttachments.length > 0) {
+        fileAttachments.forEach(file => {
+            fullText += " " + file.content.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+        });
+    }
+
+    if (editingIndex !== null) {
+        chat.history[editingIndex].content = fullText;
+        chat.history[editingIndex].display = originalMsg;
+        chat.history[editingIndex].role = "user";
+        chat.history[editingIndex].images = imageFilesBase64.length > 0 ? imageFilesBase64.slice() : [];
+        chat.history[editingIndex].files = fileAttachments.length > 0 
+            ? fileAttachments.map(item => ({ name: item.name, content: item.content }))
+            : [];
+        editingIndex = null;
+    } else {
+        const userMessage = { role: "user", content: fullText, display: originalMsg };
+        if (imageFilesBase64.length > 0) {
+            userMessage.images = imageFilesBase64.slice();
+        }
+        if (fileAttachments.length > 0) {
+            userMessage.files = fileAttachments.map(item => ({ name: item.name, content: item.content }));
+        }
+        chat.history.push(userMessage);
+    }
+
+    imageFilesBase64 = [];
+    imageFiles = [];
+    fileAttachments = [];
+    updateAttachmentsPreview();
+    updateChatWindow(); // Показать сообщение пользователя
+    await saveChat(chat); // Сохранить сообщение пользователя
+
+    // --- Логика генерации заголовка чата (начало) ---
+    const nonSystemMessages = chat.history.filter(m => m.role !== 'system');
+    let titleGenAttempted = false; // Флаг, что мы пытались генерировать заголовок
+
+    if (nonSystemMessages.length >= 6 && !chat.titleGenerated && !isGeneratingTitle) {
+        isGeneratingTitle = true;
+        titleGenAttempted = true;
+        const originalPlaceholder = chatInput.placeholder;
+        const generatingTitleText = translations[languageSelect.value]?.inputPlaceholderGeneratingTitle || "Генерация заголовка, подождите...";
+        
+        chatInput.placeholder = generatingTitleText;
+        chatInput.disabled = true;
+        sendBtn.disabled = true; 
+        console.log('[sendMessage] UI locked for title generation.');
+
+        try {
+            const modelForTitle = (chat.modelhs && chat.modelhs.length > 0) ? chat.modelhs[chat.modelhs.length - 1] : currentModel;
+            
+            // Фильтруем историю для генерации заголовка, оставляя только user и assistant сообщения
+            const historyForTitleGeneration = chat.history.filter(m => m.role === 'user' || m.role === 'assistant');
+            console.log('[sendMessage] Filtered history for title generation:', historyForTitleGeneration);
+
+            // Вызываем функцию из titleHandler.js и ЖДЕМ ее выполнения, передавая отфильтрованную историю
+            const generatedTitle = await fetchGeneratedTitle(historyForTitleGeneration, modelForTitle); 
+
+            if (generatedTitle) {
+                chat.chatnamess = generatedTitle;
+                chat.titleGenerated = true;
+                updateChatItemText(chat); // Обновляем текст в списке чатов
+                if (activeChatId === chat.id) { // Если это активный чат, обновим заголовок и в окне чата
+                   updateChatWindow(); 
+                }
+                await saveChat(chat); // Сохраняем чат с обновленным заголовком и флагом
+            }
+        } catch (error) {
+            console.error('[sendMessage] Error during title generation step (via titleHandler):', error);
+        } finally {
+            isGeneratingTitle = false;
+            // Восстанавливаем плейсхолдер. Блокировка кнопок будет управляться основным потоком.
+            if (chatInput.placeholder === generatingTitleText) { // Только если он был изменен для генерации заголовка
+                 chatInput.placeholder = originalPlaceholder; // Возвращаем тот, что был до начала генерации заголовка
+            }
+            // Важно: chatInput.disabled и sendBtn.disabled будут установлены в try/finally основного стриминга.
+            // Здесь их не нужно принудительно включать, чтобы не было гонки состояний,
+            // но если titleGenAttempted и стриминг не начнется, они должны быть сброшены.
+            // Эта логика теперь перенесена ниже, перед началом стриминга.
+            console.log('[sendMessage] Title generation step finished.');
+        }
+    } else {
+        // titleGenAttempted останется false, если условия не выполнены
+    }
+    // --- Конец логики генерации заголовка чата ---
+     
+
+    // --- Основной ответ модели (стриминг) ---
+    // Этот блок теперь точно выполняется после того, как логика заголовка (если была) завершилась
+    
+    // Восстанавливаем UI, если генерация заголовка была и изменила состояние,
+    // или просто устанавливаем стандартные значения перед стримингом.
+    const finalPlaceholder = translations[languageSelect.value]?.inputPlaceholder || "Введите сообщение...";
+    if (titleGenAttempted) { // Если пытались генерировать заголовок, UI мог быть изменен
+        chatInput.placeholder = finalPlaceholder;
+        chatInput.disabled = false; // Будет снова заблокировано ниже
+        sendBtn.disabled = false;   // Будет снова скрыта ниже
+    }
+
+
+    if (streamAbortController) { 
+        streamAbortController.abort(); 
+        console.log("[sendMessage] Aborted previous stream");
+    }
+    streamAbortController = new AbortController();
+    
+    chatInput.placeholder = finalPlaceholder; // Убедимся, что стандартный плейсхолдер установлен
+    sendBtn.style.display = "none"; // Скрываем Send, показываем Stop
+    stopBtn.style.display = "inline-block";
+    chatInput.disabled = true; // Блокируем инпут на время ответа
+    sendBtn.disabled = false; // Send должна быть готова к следующему сообщению (но она скрыта)
+
+    try {
+        // Добавляем место для ответа ассистента
+        let assistantMessageEntry = chat.history[chat.history.length - 1];
+        if (!assistantMessageEntry || assistantMessageEntry.role !== "assistant" || assistantMessageEntry.content !== "") {
+             assistantMessageEntry = {
+                role: "assistant", content: "", images: [],
+                modelUsed: (chat.modelhs && chat.modelhs.length > 0) ? chat.modelhs[chat.modelhs.length - 1] : currentModel
+            };
+            chat.history.push(assistantMessageEntry);
+        } else {
+            assistantMessageEntry.modelUsed = (chat.modelhs && chat.modelhs.length > 0) ? chat.modelhs[chat.modelhs.length - 1] : currentModel;
+        }
+        updateChatWindow(); 
+
+        const lastMessageBlock = chatContent.querySelector('.assistant-message:last-child');
+        let streamingTextContainer = null;
+        if (lastMessageBlock) {
+            streamingTextContainer = lastMessageBlock.querySelector('.chat-text');
+            if (!streamingTextContainer) {
+                streamingTextContainer = document.createElement('div');
+                streamingTextContainer.className = 'chat-text';
+                const buttons = lastMessageBlock.querySelector('.message-buttons');
+                if (buttons) lastMessageBlock.insertBefore(streamingTextContainer, buttons);
+                else lastMessageBlock.appendChild(streamingTextContainer);
+            }
+        } else {
+            console.error("[sendMessage] Could not find lastMessageBlock for streaming.");
+        }
+        
+        let currentStreamedContent = "";
+
+        let messagesForStream = chat.history.slice(0, -1); // Make it let to modify
+
+        if (toolsEnabled) {
+            const toolsSystemMessage = {
+                role: "system",
+                content: `Ты AI-ассистент с полным доступом к компьютеру пользователя.
+Это доступные инструменты. Используй их только при необходимости и только по одному за раз.
+Формат вызова: [TOOL_CALL] имя_инструмента({"параметр1": "значение1", "параметр2": "значение2"})
+Всегда используй двойные кавычки для ключей и строковых значений в JSON.
+Для путей в Windows используй двойной обратный слеш: "C:\\Users\\User\\file.txt".
+
+Доступные инструменты:
+📁 ФАЙЛОВАЯ СИСТЕМА:
+- list_drives: Просмотр всех дисков.
+  Параметры: нет.
+  Пример: [TOOL_CALL] list_drives({})
+- write_file: Создание или перезапись файла с указанным содержимым.
+  Параметры: {"filename": "полный_путь_к_файлу", "content": "содержимое"}
+  Пример: [TOOL_CALL] write_file({"filename": "C:\\data\\new_document.txt", "content": "Это содержимое документа."})
+- read_file: Чтение текстового файла.
+  Параметры: {"filename": "полный_путь_к_файлу"}
+  Пример: [TOOL_CALL] read_file({"filename": "C:\\boot.ini"})
+- create_directory: Создание новой папки.
+  Параметры: {"dirname": "полный_путь_к_папке"}
+  Пример: [TOOL_CALL] create_directory({"dirname": "C:\\NewFolder"})
+- list_files: Просмотр содержимого папки.
+  Параметры: {"path": "путь_к_папке"} (если path не указан, используется текущий или корневой каталог)
+  Пример: [TOOL_CALL] list_files({"path": "D:\\Downloads"})
+- delete_file: Удаление файла или папки (включая содержимое папки).
+  Параметры: {"filename": "полный_путь_к_файлу_или_папке"}
+- file_operations: Расширенные файловые операции.
+  Параметры: {"operation": "copy"|"move"|"search"|"permissions", "source": "путь_источник", "destination": "путь_назначение" (для copy/move), "pattern": "шаблон" (для search)}
+  Пример (поиск): [TOOL_CALL] file_operations({"operation": "search", "source": "C:\\Users", "pattern": "*.docx"})
+
+💻 СИСТЕМНОЕ УПРАВЛЕНИЕ:
+- execute_command: Выполнение команды в терминале (cmd/bash).
+  Параметры: {"command": "команда_с_аргументами"}
+  Пример: [TOOL_CALL] execute_command({"command": "ipconfig /all"})
+- run_application: Запуск приложения.
+  Параметры: {"app_name": "имя.exe"} (для программ из PATH) ИЛИ {"app_path": "полный_путь_к\\имя.exe"}. Можно добавить {"arguments": "аргументы"}.
+  Пример (имя): [TOOL_CALL] run_application({"app_name": "notepad.exe"})
+  Пример (путь): [TOOL_CALL] run_application({"app_path": "C:\\Program Files\\MyApp\\app.exe", "arguments": "--nogui"})
+- get_system_info: Общая информация о системе (ОС, CPU, GPU, память, диски).
+  Параметры: нет.
+  Пример: [TOOL_CALL] get_system_info({})
+- manage_processes: Управление процессами.
+  Параметры: {"action": "list"|"kill"|"info", "process_name": "имя_процесса" (для kill/info), "process_id": id_процесса (для kill/info), "force": true/false (для kill, необязательно)}
+  Пример (список): [TOOL_CALL] manage_processes({"action": "list"})
+  Пример (завершить): [TOOL_CALL] manage_processes({"action": "kill", "process_name": "notepad.exe"})
+  Пример (завершить принудительно по PID): [TOOL_CALL] manage_processes({"action": "kill", "process_id": 1234, "force": true})
+- network_info: Информация о сетевых интерфейсах и соединениях.
+  Параметры: нет.
+- manage_services: Управление службами (Windows/Linux).
+  Параметры: {"action": "list"|"start"|"stop"|"restart"|"status", "service_name": "имя_службы"}
+  Пример: [TOOL_CALL] manage_services({"action": "status", "service_name": "spooler"})
+- find_executable: Поиск исполняемого файла в системных путях.
+  Параметры: {"executable_name": "имя_файла.exe"}
+  Пример: [TOOL_CALL] find_executable({"executable_name": "python.exe"})
+
+Отвечай на языке пользователя.`
+            };
+            // Удаляем существующее системное сообщение, если оно есть, и добавляем новое в начало
+            messagesForStream = messagesForStream.filter(msg => msg.role !== 'system');
+            messagesForStream.unshift(toolsSystemMessage);
+        }
+
+        const requestData = {
+            model: assistantMessageEntry.modelUsed, 
+            messages: messagesForStream, // messagesForStream теперь может содержать toolsSystemMessage
+            tools_enabled: toolsEnabled // Оставляем этот флаг, сервер может его использовать для доп. логики, хотя клиент уже добавил промпт
+        };
+        console.log("[sendMessage] Request data for stream:", JSON.parse(JSON.stringify(requestData)));
+
+        const resp = await fetch("/generate-stream", {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestData),
+            signal: streamAbortController.signal
+        });
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let done = false;
+        while (!done) {
+            const { value, done: doneReading } = await reader.read();
+            done = doneReading;
+            if (!value) continue;
+            const chunk = decoder.decode(value);
+            chunk.split("\n\n").forEach(line => {
+                if (line.startsWith("data: ")) {
+                    let dataStr = line.substring(6).trim();
+                    if (dataStr) {
+                        dataStr = dataStr.replace(/<(?:think|thought)>[\s\S]*?<\/(?:think|thought)>/gi, "");
+                        try {
+                            const obj = JSON.parse(dataStr);
+                            if (obj.message && obj.message.content) {
+                                currentStreamedContent += obj.message.content;
+                            }
+                        } catch {
+                            currentStreamedContent += dataStr;
+                        }
+                        if (streamingTextContainer) {
+                            streamingTextContainer.textContent = currentStreamedContent;
+                        }
+                    }
+                }
+            });
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+        assistantMessageEntry.content = currentStreamedContent; // Полный сырой ответ модели сохранен в истории
+        // НЕ вызываем updateChatWindow() и saveChat() здесь сразу
+
+        // --- Новое место для обработки TOOL_CALL --- 
+        if (toolsEnabled && assistantMessageEntry.content) { // Проверяем assistantMessageEntry.content, а не chat.history
+            const toolCalls = parseToolCalls(assistantMessageEntry.content);
+            if (toolCalls.length > 0) {
+                console.log('[sendMessage] Found tool calls:', toolCalls);
+                // Флаг isProcessingTools и обновление UI для обработки инструментов можно добавить здесь, если нужно
+                // isProcessingTools = true; 
+                // chatInput.placeholder = getTranslation("processingTools"); ... etc.
+
+                let toolResultsText = '';
+                const originalContentWithToolCalls = assistantMessageEntry.content;
+
+                for (const call of toolCalls) {
+                    const result = await executeToolCall(call.toolName, call.parameters);
+                    toolResultsText += `\n[TOOL_RESULT for ${call.toolName}]:\n${result}\n`; 
+                }
+                
+                let contentWithoutToolCalls = originalContentWithToolCalls.replace(/\[TOOL_CALL\]\s*(\w+)\s*\(([^)]*)\)/g, '').trim();
+                
+                assistantMessageEntry.content = (contentWithoutToolCalls + toolResultsText).trim();
+                console.log('[sendMessage] Content after tool processing:', assistantMessageEntry.content);
+                // Никаких updateChatWindow() или saveChat() здесь
+                // isProcessingTools = false; // Сброс флага, если использовался
+            }
+        }
+        // --- Конец обработки TOOL_CALL ---
+
+        updateChatWindow(); // Финальный рендер с Markdown, MathJax и результатами инструментов
+        await saveChat(chat); // Финальное сохранение чата
+
+    } catch (error) {
+        console.error("Stream aborted or error:", error);
+        if (error.name !== 'AbortError' && chat.history.length > 0) {
+            const lastMessage = chat.history[chat.history.length - 1];
+            if (lastMessage.role === "assistant") {
+                lastMessage.content = "Ошибка: " + error.message;
+                updateChatWindow();
+                await saveChat(chat);
+            }
+        }
+    } finally {
+        sendBtn.style.display = "inline-block";
+        stopBtn.style.display = "none";
+        chatInput.disabled = false;
+        chatInput.placeholder = finalPlaceholder; // Восстанавливаем основной плейсхолдер
+        streamAbortController = null;
+        console.log("[sendMessage] Streaming finished or aborted.");
+    }
+}
+    
+    // Функции для работы с фоном
+    function updateBackgroundPreview() {
+      const bgType = localStorage.getItem('backgroundType');
+      
+      if (bgType === 'image') {
+        const bgImage = localStorage.getItem('backgroundImage');
+        if (bgImage) {
+          bgPreview.style.backgroundImage = `url(${bgImage})`;
+          bgPreviewText.textContent = '';
+        }
+      } else if (bgType === 'gradient') {
+        const color1 = localStorage.getItem('gradientColor1') || '#4166d5';
+        const color2 = localStorage.getItem('gradientColor2') || '#1e1f25';
+        bgPreview.style.backgroundImage = `linear-gradient(135deg, ${color1}, ${color2})`;
+        bgPreviewText.textContent = '';
+      } else {
+        bgPreview.style.backgroundImage = '';
+        bgPreviewText.textContent = 'No background';
+      }
+    }
+    
+    function applyBackground() {
+      const bgType = localStorage.getItem('backgroundType');
+      const mainContent = document.querySelector('.main');
+      
+      if (bgType === 'image') {
+        const bgImage = localStorage.getItem('backgroundImage');
+        if (bgImage) {
+          mainContent.style.backgroundImage = `url(${bgImage})`;
+          mainContent.style.backgroundSize = 'cover';
+          mainContent.style.backgroundAttachment = 'fixed';
+        }
+      } else if (bgType === 'gradient') {
+        const color1 = localStorage.getItem('gradientColor1') || '#4166d5';
+        const color2 = localStorage.getItem('gradientColor2') || '#1e1f25';
+        mainContent.style.backgroundImage = `linear-gradient(135deg, ${color1}, ${color2})`;
+      } else {
+        mainContent.style.backgroundImage = '';
+      }
+    }
+
+    // Обработчики событий
+    stopBtn.addEventListener("click", () => {
+      if (streamAbortController) {
+        streamAbortController.abort();
+      }
+      sendBtn.style.display = "inline-block";
+      stopBtn.style.display = "none";
+    });
+    
+    newChatBtn.addEventListener('click', createNewChat);
+    
+    sendBtn.addEventListener('click', function() {
+      console.log("Send button clicked!");
+      sendMessage();
+    });
+    
+    toolsBtn.addEventListener('click', toggleTools);
+    
+    chatInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+    
+    chatInput.addEventListener('input', autoResize);
+    
+    changeModelBtn.addEventListener('click', () => {
+      loadInstalledModels();
+      if (isModelInstalling) {
+        if (sidebarModelInstallProgressContainer) sidebarModelInstallProgressContainer.style.display = 'none';
+        // Logic to potentially update progress within modal if it's for the same model
+        const customInput = document.getElementById('customInput'); // Check if custom input field exists
+        const modalProgressFill = modelCustomContainer.querySelector('.progress-fill');
+        const modalProgressLabel = modelCustomContainer.querySelector('.progress-label');
+
+        if (currentInstallingModelName && modelCustomContainer.querySelector('.progress-container')) {
+          // If an installation is ongoing and progress bar exists in modal
+          if (modalProgressFill) modalProgressFill.style.width = globalInstallPercent + '%';
+          if (modalProgressLabel) modalProgressLabel.textContent = globalInstallPercent + '%';
+          // If the model being installed was from custom input, ensure input is not shown
+          if (customInput && customInput.value === currentInstallingModelName) {
+             // customInput.style.display = 'none'; // Or remove it
+          }
+        } else if (customInput) {
+            // If there's a custom input but no progress for currentInstallingModelName, ensure it's clear
+            // customInput.value = ''; // Or handle as needed
+        }
+      }
+      modelModal.style.display = 'block';
+      setTimeout(() => {
+        modelModal.classList.add('show');
+      }, 10);
+    });
+    
+    closeModelModal.addEventListener('click', () => {
+      if (isModelInstalling) {
+        if (sidebarModelInstallProgressContainer) sidebarModelInstallProgressContainer.style.display = 'block';
+        if (sidebarProgressLabel) sidebarProgressLabel.textContent = `Installing ${currentInstallingModelName}...`;
+        if (sidebarProgressFill) sidebarProgressFill.style.width = globalInstallPercent + '%';
+        if (sidebarProgressText) sidebarProgressText.textContent = globalInstallPercent + '%';
+      }
+      modelModal.classList.remove('show');
+      setTimeout(() => {
+        modelModal.style.display = 'none';
+      }, 300);
+    });
+    
+    openSettingsBtn.addEventListener('click', () => {
+      loadSettings();
+      settingsModal.style.display = 'block';
+      setTimeout(() => {
+        settingsModal.classList.add('show');
+      }, 10);
+    });
+    
+    closeSettingsModal.addEventListener('click', () => {
+      settingsModal.classList.remove('show');
+      setTimeout(() => {
+        settingsModal.style.display = 'none';
+      }, 300);
+    });
+    
+    saveSettingsBtn.addEventListener('click', saveSettings);
+    
+
+    
+    window.addEventListener('click', (event) => {
+      if (event.target === modelModal) {
+        if (isModelInstalling) {
+          if (sidebarModelInstallProgressContainer) sidebarModelInstallProgressContainer.style.display = 'block';
+          if (sidebarProgressLabel) sidebarProgressLabel.textContent = `Installing ${currentInstallingModelName}...`;
+          if (sidebarProgressFill) sidebarProgressFill.style.width = globalInstallPercent + '%';
+          if (sidebarProgressText) sidebarProgressText.textContent = globalInstallPercent + '%';
+        }
+        modelModal.classList.remove('show');
+        setTimeout(() => {
+          modelModal.style.display = 'none';
+        }, 300);
+      }
+      if (event.target === settingsModal) {
+        settingsModal.classList.remove('show');
+        setTimeout(() => {
+          settingsModal.style.display = 'none';
+        }, 300);
+      }
+    });
+    
+    chatWindow.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      dragOverlay.classList.add('active');
+    });
+    
+    chatWindow.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+    
+    chatWindow.addEventListener('dragleave', (e) => {
+      if (e.target === chatWindow || e.target === dragOverlay) {
+        dragOverlay.classList.remove('active');
+      }
+    });
+    
+    chatWindow.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragOverlay.classList.remove('active');
+      if (e.dataTransfer.files.length) {
+        handleDroppedFiles(e.dataTransfer.files);
+        handleNonImageFiles(e.dataTransfer.files);
+      }
+    });
+    
+    imageUploadBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      const files = e.target.files;
+      handleDroppedFiles(files);
+      handleNonImageFiles(files);
+      fileInput.value = "";
+    });
+    
+    toggleSidebar.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      // Новый код для мобильных:
+      if (window.innerWidth <= 768) {
+          if (!sidebar.classList.contains('collapsed')) {
+              // Если сайдбар открывается на мобильном
+              document.body.classList.add('sidebar-open-mobile'); 
+              // Можно добавить слушатель для клика на .main для закрытия сайдбара
+          } else {
+              document.body.classList.remove('sidebar-open-mobile');
+          }
+      }
+      toggleSidebar.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+    });
+    
+    // Обработчики для настроек темы
+    document.querySelectorAll('.theme-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const theme = option.getAttribute('data-theme');
+        document.body.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        currentTheme = theme; // Ensure currentTheme is updated
+        applyHighlightTheme(currentTheme);
+        
+        document.querySelectorAll('.theme-option').forEach(opt => {
+          opt.classList.remove('active');
+        });
+        option.classList.add('active');
+      });
+    });
+    
+    uploadBgBtn.addEventListener('click', () => {
+      bgImageInput.click();
+    });
+    
+    bgImageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          localStorage.setItem('backgroundImage', e.target.result);
+          localStorage.setItem('backgroundType', 'image');
+          updateBackgroundPreview();
+          applyBackground();
+        } catch (error) {
+          console.error("Ошибка при сохранении фона:", error);
+          alert('Не удалось сохранить изображение. Возможно, закончилось место в хранилище.');
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    
+    resetBgBtn.addEventListener('click', () => {
+      localStorage.removeItem('backgroundImage');
+      localStorage.removeItem('backgroundType');
+      localStorage.removeItem('gradientColor1');
+      localStorage.removeItem('gradientColor2');
+      applyBackground();
+      updateBackgroundPreview();
+    });
+    
+    applyGradientBtn.addEventListener('click', () => {
+      const color1 = gradientColor1.value;
+      const color2 = gradientColor2.value;
+      localStorage.setItem('gradientColor1', color1);
+      localStorage.setItem('gradientColor2', color2);
+      localStorage.setItem('backgroundType', 'gradient');
+      updateBackgroundPreview();
+      applyBackground();
+    });
+
+    if (modelTemperatureInput && modelTemperatureValueSpan) {
+      modelTemperatureInput.addEventListener('input', () => {
+        modelTemperatureValueSpan.textContent = parseFloat(modelTemperatureInput.value).toFixed(2);
+      });
+    }
+    
+    // Инициализация приложения
+    async function init() {
+      await loadSettings();
+      await loadChats();
+      
+      // Если нет чатов, создаем новый
+      if (chats.length === 0) {
+        await createNewChat();
+      } else {
+        // Если есть чаты, активируем первый
+        activeChatId = chats[0].id;
+        switchChat(activeChatId); // <--- ИЗМЕНЕНИЕ ЗДЕСЬ
+      }
+      
+      updateInputPosition();
+      
+      // Применяем сохраненные настройки фона
+      applyBackground();
+      
+      setTimeout(() => {
+        introText.style.opacity = "1";
+        introText.style.transform = "translateY(0)";
+      }, 300);
+      
+      // Показываем существующие чаты с анимацией
+      setTimeout(() => {
+        document.querySelectorAll('.chat-item').forEach(item => {
+          item.classList.add('visible');
+        });
+      }, 500);
+    }
+
+
+
+
+
+    
+    await init();
+  </script>
+</body>
+</html>
