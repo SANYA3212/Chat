@@ -326,6 +326,7 @@
       word-break: break-word;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
+      animation: slideIn 0.4s ease forwards;
     }
 
     .message-block:hover {
@@ -1003,6 +1004,34 @@
       background-color: var(--primary);
     }
 
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .tps-counter {
+      align-self: flex-start;
+      margin-top: -10px;
+      margin-bottom: 15px;
+      margin-left: 35px;
+      padding: 3px 8px;
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+      font-size: 0.75em;
+      border-radius: 8px;
+    }
+
+    [data-theme="light"] .tps-counter {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+
 @media screen and (max-width: 768px) {
   .sidebar {
     position: fixed; /* Поверх контента */
@@ -1137,7 +1166,6 @@
     };
   </script>
   <!-- Local MathJax files for offline use -->
-  <script src="mathjax-offline/polyfill.min.js"></script>
   <script id="MathJax-script" async src="mathjax-offline/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
@@ -2303,232 +2331,127 @@
       return calls;
     }
 
-async function sendMessage() {
+async function sendMessage(isContinuation = false) {
     const originalMsg = chatInput.value.trim();
-    if (!originalMsg && imageFilesBase64.length === 0 && fileAttachments.length === 0) {
+    if (!isContinuation && !originalMsg && imageFilesBase64.length === 0 && fileAttachments.length === 0) {
         return;
     }
-    if (activeChatId === null) { // Добавим проверку и создание чата, если нужно
-        console.warn("activeChatId is null in sendMessage. Attempting to create a new chat.");
+    if (activeChatId === null) {
         await createNewChat();
         if (activeChatId === null) {
-            console.error("Failed to create or assign activeChatId. Aborting sendMessage.");
+            console.error("Failed to create new chat. Aborting.");
             return;
         }
     }
 
     const chat = chats.find(c => c.id === activeChatId);
     if (!chat) {
-        console.error("Chat not found for activeChatId:", activeChatId, ". Aborting sendMessage.");
+        console.error("Active chat not found. Aborting.");
         return;
     }
 
-    const oneLineMsg = originalMsg.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
-    chatInput.value = ""; // Очищаем поле ввода сразу
-    autoResize();
+    if (!isContinuation) {
+        const oneLineMsg = originalMsg.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+        chatInput.value = "";
+        autoResize();
 
-    let fullText = oneLineMsg;
-    if (fileAttachments.length > 0) {
-        fileAttachments.forEach(file => {
-            fullText += " " + file.content.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
-        });
-    }
-
-    if (editingIndex !== null) {
-        chat.history[editingIndex].content = fullText;
-        chat.history[editingIndex].display = originalMsg;
-        chat.history[editingIndex].role = "user";
-        chat.history[editingIndex].images = imageFilesBase64.length > 0 ? imageFilesBase64.slice() : [];
-        chat.history[editingIndex].files = fileAttachments.length > 0 
-            ? fileAttachments.map(item => ({ name: item.name, content: item.content }))
-            : [];
-        editingIndex = null;
-    } else {
-        const userMessage = { role: "user", content: fullText, display: originalMsg };
-        if (imageFilesBase64.length > 0) {
-            userMessage.images = imageFilesBase64.slice();
-        }
+        let fullText = oneLineMsg;
         if (fileAttachments.length > 0) {
-            userMessage.files = fileAttachments.map(item => ({ name: item.name, content: item.content }));
+            fullText += " " + fileAttachments.map(f => f.content.replace(/[\r\n]+/g, ' ').trim()).join(" ");
         }
-        chat.history.push(userMessage);
-    }
 
-    imageFilesBase64 = [];
-    imageFiles = [];
-    fileAttachments = [];
-    updateAttachmentsPreview();
-    updateChatWindow(); // Показать сообщение пользователя
-    await saveChat(chat); // Сохранить сообщение пользователя
-
-    // --- Логика генерации заголовка чата (начало) ---
-    const nonSystemMessages = chat.history.filter(m => m.role !== 'system');
-    let titleGenAttempted = false; // Флаг, что мы пытались генерировать заголовок
-
-    if (nonSystemMessages.length >= 6 && !chat.titleGenerated && !isGeneratingTitle) {
-        isGeneratingTitle = true;
-        titleGenAttempted = true;
-        const originalPlaceholder = chatInput.placeholder;
-        const generatingTitleText = translations[languageSelect.value]?.inputPlaceholderGeneratingTitle || "Генерация заголовка, подождите...";
+        const userMessage = { role: "user", content: fullText, display: originalMsg };
+        if (imageFilesBase64.length > 0) userMessage.images = imageFilesBase64.slice();
+        if (fileAttachments.length > 0) userMessage.files = fileAttachments.map(f => ({ name: f.name, content: f.content }));
         
-        chatInput.placeholder = generatingTitleText;
-        chatInput.disabled = true;
-        sendBtn.disabled = true; 
-        console.log('[sendMessage] UI locked for title generation.');
+        chat.history.push(userMessage);
 
-        try {
-            const modelForTitle = (chat.modelhs && chat.modelhs.length > 0) ? chat.modelhs[chat.modelhs.length - 1] : currentModel;
-            
-            // Фильтруем историю для генерации заголовка, оставляя только user и assistant сообщения
-            const historyForTitleGeneration = chat.history.filter(m => m.role === 'user' || m.role === 'assistant');
-            console.log('[sendMessage] Filtered history for title generation:', historyForTitleGeneration);
-
-            // Вызываем функцию из titleHandler.js и ЖДЕМ ее выполнения, передавая отфильтрованную историю
-            const generatedTitle = await fetchGeneratedTitle(historyForTitleGeneration, modelForTitle); 
-
-            if (generatedTitle) {
-                chat.chatnamess = generatedTitle;
-                chat.titleGenerated = true;
-                updateChatItemText(chat); // Обновляем текст в списке чатов
-                if (activeChatId === chat.id) { // Если это активный чат, обновим заголовок и в окне чата
-                   updateChatWindow(); 
-                }
-                await saveChat(chat); // Сохраняем чат с обновленным заголовком и флагом
-            }
-        } catch (error) {
-            console.error('[sendMessage] Error during title generation step (via titleHandler):', error);
-        } finally {
-            isGeneratingTitle = false;
-            // Восстанавливаем плейсхолдер. Блокировка кнопок будет управляться основным потоком.
-            if (chatInput.placeholder === generatingTitleText) { // Только если он был изменен для генерации заголовка
-                 chatInput.placeholder = originalPlaceholder; // Возвращаем тот, что был до начала генерации заголовка
-            }
-            // Важно: chatInput.disabled и sendBtn.disabled будут установлены в try/finally основного стриминга.
-            // Здесь их не нужно принудительно включать, чтобы не было гонки состояний,
-            // но если titleGenAttempted и стриминг не начнется, они должны быть сброшены.
-            // Эта логика теперь перенесена ниже, перед началом стриминга.
-            console.log('[sendMessage] Title generation step finished.');
-        }
-    } else {
-        // titleGenAttempted останется false, если условия не выполнены
-    }
-    // --- Конец логики генерации заголовка чата ---
-     
-
-    // --- Основной ответ модели (стриминг) ---
-    // Этот блок теперь точно выполняется после того, как логика заголовка (если была) завершилась
-    
-    // Восстанавливаем UI, если генерация заголовка была и изменила состояние,
-    // или просто устанавливаем стандартные значения перед стримингом.
-    const finalPlaceholder = translations[languageSelect.value]?.inputPlaceholder || "Введите сообщение...";
-    if (titleGenAttempted) { // Если пытались генерировать заголовок, UI мог быть изменен
-        chatInput.placeholder = finalPlaceholder;
-        chatInput.disabled = false; // Будет снова заблокировано ниже
-        sendBtn.disabled = false;   // Будет снова скрыта ниже
+        imageFilesBase64 = [];
+        imageFiles = [];
+        fileAttachments = [];
+        updateAttachmentsPreview();
+        updateChatWindow();
+        await saveChat(chat);
     }
 
-
-    if (streamAbortController) { 
-        streamAbortController.abort(); 
-        console.log("[sendMessage] Aborted previous stream");
+    if (streamAbortController) {
+        streamAbortController.abort();
     }
     streamAbortController = new AbortController();
-    
-    chatInput.placeholder = finalPlaceholder; // Убедимся, что стандартный плейсхолдер установлен
-    sendBtn.style.display = "none"; // Скрываем Send, показываем Stop
+
+    sendBtn.style.display = "none";
     stopBtn.style.display = "inline-block";
-    chatInput.disabled = true; // Блокируем инпут на время ответа
-    sendBtn.disabled = false; // Send должна быть готова к следующему сообщению (но она скрыта)
+    chatInput.disabled = true;
 
     try {
-        // Добавляем место для ответа ассистента
-        let assistantMessageEntry = chat.history[chat.history.length - 1];
-        if (!assistantMessageEntry || assistantMessageEntry.role !== "assistant" || assistantMessageEntry.content !== "") {
-             assistantMessageEntry = {
-                role: "assistant", content: "", images: [],
-                modelUsed: (chat.modelhs && chat.modelhs.length > 0) ? chat.modelhs[chat.modelhs.length - 1] : currentModel
-            };
-            chat.history.push(assistantMessageEntry);
-        } else {
-            assistantMessageEntry.modelUsed = (chat.modelhs && chat.modelhs.length > 0) ? chat.modelhs[chat.modelhs.length - 1] : currentModel;
-        }
-        updateChatWindow(); 
+        let assistantMessageEntry = {
+            role: "assistant",
+            content: "",
+            modelUsed: (chat.modelhs && chat.modelhs.length > 0) ? chat.modelhs[chat.modelhs.length - 1] : currentModel
+        };
+        chat.history.push(assistantMessageEntry);
+        updateChatWindow();
 
         const lastMessageBlock = chatContent.querySelector('.assistant-message:last-child');
-        let streamingTextContainer = null;
-        if (lastMessageBlock) {
-            streamingTextContainer = lastMessageBlock.querySelector('.chat-text');
-            if (!streamingTextContainer) {
-                streamingTextContainer = document.createElement('div');
-                streamingTextContainer.className = 'chat-text';
-                const buttons = lastMessageBlock.querySelector('.message-buttons');
-                if (buttons) lastMessageBlock.insertBefore(streamingTextContainer, buttons);
-                else lastMessageBlock.appendChild(streamingTextContainer);
-            }
-        } else {
-            console.error("[sendMessage] Could not find lastMessageBlock for streaming.");
-        }
-        
+        let streamingTextContainer = lastMessageBlock.querySelector('.chat-text');
+
         let currentStreamedContent = "";
 
-        let messagesForStream = chat.history.slice(0, -1); // Make it let to modify
-
+        const messagesForStream = chat.history.slice(0, -1);
         if (toolsEnabled) {
             const toolsSystemMessage = {
                 role: "system",
-                content: `Ты AI-ассистент с полным доступом к компьютеру пользователя.
-Это доступные инструменты. Используй их только при необходимости и только по одному за раз.
-Формат вызова: [TOOL_CALL] имя_инструмента({"параметр1": "значение1", "параметр2": "значение2"})
-Всегда используй двойные кавычки для ключей и строковых значений в JSON.
-Для путей в Windows используй двойной обратный слеш: "C:\\Users\\User\\file.txt".
+                content: `Ты — AI-ассистент, способный выполнять сложные задачи, разбивая их на более мелкие шаги. Ты имеешь доступ к набору инструментов для взаимодействия с компьютером пользователя.
 
-Доступные инструменты:
-📁 ФАЙЛОВАЯ СИСТЕМА:
-- list_drives: Просмотр всех дисков.
-  Параметры: нет.
-  Пример: [TOOL_CALL] list_drives({})
-- write_file: Создание или перезапись файла с указанным содержимым.
-  Параметры: {"filename": "полный_путь_к_файлу", "content": "содержимое"}
-  Пример: [TOOL_CALL] write_file({"filename": "C:\\data\\new_document.txt", "content": "Это содержимое документа."})
-- read_file: Чтение текстового файла.
-  Параметры: {"filename": "полный_путь_к_файлу"}
-  Пример: [TOOL_CALL] read_file({"filename": "C:\\boot.ini"})
-- create_directory: Создание новой папки.
-  Параметры: {"dirname": "полный_путь_к_папке"}
-  Пример: [TOOL_CALL] create_directory({"dirname": "C:\\NewFolder"})
-- list_files: Просмотр содержимого папки.
-  Параметры: {"path": "путь_к_папке"} (если path не указан, используется текущий или корневой каталог)
-  Пример: [TOOL_CALL] list_files({"path": "D:\\Downloads"})
-- delete_file: Удаление файла или папки (включая содержимое папки).
-  Параметры: {"filename": "полный_путь_к_файлу_или_папке"}
-- file_operations: Расширенные файловые операции.
-  Параметры: {"operation": "copy"|"move"|"search"|"permissions", "source": "путь_источник", "destination": "путь_назначение" (для copy/move), "pattern": "шаблон" (для search)}
-  Пример (поиск): [TOOL_CALL] file_operations({"operation": "search", "source": "C:\\Users", "pattern": "*.docx"})
+# ОБЩИЙ ПЛАН РАБОТЫ:
+1.  **<thought>** Проанализируй запрос пользователя. Разбей сложную задачу на последовательность более простых шагов. Сформулируй план действий. **</thought>**
+2.  **[TOOL_CALL]** Используй один из доступных инструментов для выполнения следующего шага твоего плана.
+3.  Ты получишь **[TOOL_RESULT]**. Проанализируй результат.
+4.  **<thought>** Обнови свой план на основе полученного результата. Подумай, какой шаг следующий. **</thought>**
+5.  Повторяй шаги 2-4, пока не достигнешь цели.
+6.  Когда задача будет полностью выполнена, предоставь пользователю окончательный ответ.
 
-💻 СИСТЕМНОЕ УПРАВЛЕНИЕ:
-- execute_command: Выполнение команды в терминале (cmd/bash).
-  Параметры: {"command": "команда_с_аргументами"}
-  Пример: [TOOL_CALL] execute_command({"command": "ipconfig /all"})
-- run_application: Запуск приложения.
-  Параметры: {"app_name": "имя.exe"} (для программ из PATH) ИЛИ {"app_path": "полный_путь_к\\имя.exe"}. Можно добавить {"arguments": "аргументы"}.
-  Пример (имя): [TOOL_CALL] run_application({"app_name": "notepad.exe"})
-  Пример (путь): [TOOL_CALL] run_application({"app_path": "C:\\Program Files\\MyApp\\app.exe", "arguments": "--nogui"})
-- get_system_info: Общая информация о системе (ОС, CPU, GPU, память, диски).
-  Параметры: нет.
-  Пример: [TOOL_CALL] get_system_info({})
-- manage_processes: Управление процессами.
-  Параметры: {"action": "list"|"kill"|"info", "process_name": "имя_процесса" (для kill/info), "process_id": id_процесса (для kill/info), "force": true/false (для kill, необязательно)}
-  Пример (список): [TOOL_CALL] manage_processes({"action": "list"})
-  Пример (завершить): [TOOL_CALL] manage_processes({"action": "kill", "process_name": "notepad.exe"})
-  Пример (завершить принудительно по PID): [TOOL_CALL] manage_processes({"action": "kill", "process_id": 1234, "force": true})
-- network_info: Информация о сетевых интерфейсах и соединениях.
-  Параметры: нет.
-- manage_services: Управление службами (Windows/Linux).
-  Параметры: {"action": "list"|"start"|"stop"|"restart"|"status", "service_name": "имя_службы"}
-  Пример: [TOOL_CALL] manage_services({"action": "status", "service_name": "spooler"})
-- find_executable: Поиск исполняемого файла в системных путях.
-  Параметры: {"executable_name": "имя_файла.exe"}
-  Пример: [TOOL_CALL] find_executable({"executable_name": "python.exe"})
+# ПРАВИЛА:
+- Используй **только один** `[TOOL_CALL]` за один раз.
+- Всегда используй теги `<thought>` для своих рассуждений.
+- `[TOOL_CALL]` должен быть последним, что ты выводишь в своем ответе.
+- JSON в `[TOOL_CALL]` должен использовать двойные кавычки для ключей и строковых значений.
+- Для путей в Windows используй двойной обратный слеш: `"C:\\Users\\User\\file.txt"`.
+
+# ИНСТРУМЕНТЫ:
+
+## 📁 Файловая система:
+- **list_drives**: Показывает все диски и основные папки.
+  - Параметры: нет.
+  - Пример: `[TOOL_CALL] list_drives({})`
+- **create_file**: Создает или перезаписывает файл.
+  - Параметры: `{"filename": "полный/путь/к/файлу", "content": "содержимое"}`
+- **edit_file**: Редактирует существующий файл.
+  - Параметры: `{"filename": "полный/путь/к/файлу", "content": "новое содержимое"}`
+- **read_file**: Читает текстовый файл.
+  - Параметры: `{"filename": "полный/путь/к/файлу"}`
+- **create_directory**: Создает папку.
+  - Параметры: `{"dirname": "полный/путь/к/папке"}`
+- **list_files**: Показывает содержимое папки.
+  - Параметры: `{"path": "путь/к/папке"}` (по умолчанию используется текущий каталог)
+- **delete_file**: Удаляет файл или папку.
+  - Параметры: `{"filename": "полный/путь/к/файлу_или_папке"}`
+- **file_operations**: Расширенные операции (копирование, перемещение, поиск).
+  - Параметры: `{"operation": "copy"|"move"|"search", "source": "...", "destination": "..." (для copy/move), "pattern": "..." (для search)}`
+
+## 💻 Системное управление:
+- **execute_command**: Выполняет команду в терминале (cmd/bash).
+  - Параметры: `{"command": "команда с аргументами"}`
+- **execute_python_code**: Выполняет Python-код.
+  - Параметры: `{"code": "print('Hello, World!')"}`
+- **run_application**: Запускает приложение.
+  - Параметры: `{"app_name": "имя.exe"}` или `{"app_path": "полный/путь/к/имя.exe", "arguments": "аргументы"}`
+- **get_system_info**: Показывает общую информацию о системе (ОС, CPU, GPU, память).
+  - Параметры: нет.
+- **manage_processes**: Управляет процессами (list, kill, info).
+  - Параметры: `{"action": "list"|"kill"|"info", "process_name": "имя", "process_id": 1234}`
+- **network_info**: Показывает информацию о сети.
+  - Параметры: нет.
 
 Отвечай на языке пользователя.`
             };
@@ -2553,28 +2476,43 @@ async function sendMessage() {
 
         const reader = resp.body.getReader();
         const decoder = new TextDecoder("utf-8");
-        let done = false;
-        while (!done) {
-            const { value, done: doneReading } = await reader.read();
-            done = doneReading;
-            if (!value) continue;
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
             const chunk = decoder.decode(value);
             chunk.split("\n\n").forEach(line => {
                 if (line.startsWith("data: ")) {
                     let dataStr = line.substring(6).trim();
-                    if (dataStr) {
-                        dataStr = dataStr.replace(/<(?:think|thought)>[\s\S]*?<\/(?:think|thought)>/gi, "");
-                        try {
-                            const obj = JSON.parse(dataStr);
-                            if (obj.message && obj.message.content) {
-                                currentStreamedContent += obj.message.content;
-                            }
-                        } catch {
-                            currentStreamedContent += dataStr;
+                    if (!dataStr) return;
+                    console.log("Received data:", dataStr);
+
+                    // Always strip thought tags from any incoming data string
+                    let cleanDataStr = dataStr.replace(/<(?:think|thought)>[\s\S]*?<\/(?:think|thought)>/gi, "").trim();
+                    if (!cleanDataStr && dataStr.includes("<thought>")) {
+                        // If the string ONLY contained a thought, there's nothing more to do with it.
+                        return;
+                    }
+
+                    try {
+                        const obj = JSON.parse(cleanDataStr);
+                        if (obj.tps) {
+                            const tpsCounter = document.createElement('div');
+                            tpsCounter.className = 'tps-counter';
+                            tpsCounter.textContent = `Tokens per second: ${obj.tps}`;
+                            lastMessageBlock.insertAdjacentElement('afterend', tpsCounter);
+                        } else if (obj.message && obj.message.content) {
+                            currentStreamedContent += obj.message.content;
                         }
-                        if (streamingTextContainer) {
-                            streamingTextContainer.textContent = currentStreamedContent;
-                        }
+                        // Note: Non-message JSON objects are ignored here.
+                    } catch (e) {
+                        // If it's not a JSON object, it's part of the raw content stream.
+                        // The cleaned string (without thoughts) should be appended.
+                        currentStreamedContent += cleanDataStr;
+                    }
+
+                    // Update the UI with the latest content (which has thoughts stripped)
+                    if (streamingTextContainer) {
+                       streamingTextContainer.innerHTML = parseContentForCodeBlocks(currentStreamedContent, assistantMessageEntry.modelUsed);
                     }
                 }
             });

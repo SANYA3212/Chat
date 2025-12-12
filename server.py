@@ -250,10 +250,34 @@ def generate_stream():
             payload["options"] = options
 
         resp = requests.post(f"{OLLAMA_API}/api/chat", json=payload, stream=True, timeout=120)
+
         def generate():
+            final_stats = {}
             for line in resp.iter_lines():
                 if line:
-                    yield f"data: {line.decode('utf-8')}\n\n"
+                    decoded_line = line.decode('utf-8')
+                    yield f"data: {decoded_line}\n\n"
+                    try:
+                        # Attempt to parse the JSON to find the final stats
+                        json_line = json.loads(decoded_line)
+                        if json_line.get("done", False):
+                            # These keys are based on Ollama's final stream response
+                            final_stats['eval_count'] = json_line.get('eval_count')
+                            final_stats['total_duration'] = json_line.get('total_duration')
+                    except json.JSONDecodeError:
+                        continue # Ignore lines that are not valid JSON
+
+            # After the loop, calculate and send TPS if possible
+            if final_stats.get('eval_count') and final_stats.get('total_duration'):
+                tokens = final_stats['eval_count']
+                duration_ns = final_stats['total_duration']
+                duration_s = duration_ns / 1_000_000_000  # Convert nanoseconds to seconds
+
+                if duration_s > 0:
+                    tps = tokens / duration_s
+                    tps_data = {"tps": f"{tps:.2f}"}
+                    yield f"data: {json.dumps(tps_data)}\n\n"
+
         return Response(generate(), mimetype='text/event-stream')
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1392,6 +1416,27 @@ CPU: {proc_info['cpu_percent']:.1f}%
             except Exception as e_find:
                 return jsonify({'error': f'Непредвиденная ошибка при поиске исполняемого файла: {str(e_find)}'}), 500
         
+        elif tool_name == 'execute_python_code':
+            code = parameters.get('code')
+            if not code:
+                return jsonify({'error': 'Не указан код для выполнения'}), 400
+
+            try:
+                result = subprocess.run(['python', '-c', code], capture_output=True, text=True, timeout=60)
+                output = result.stdout if result.stdout else result.stderr
+                return_code = result.returncode
+
+                return jsonify({
+                    'result': f'Код выполнен (код возврата: {return_code})\nВывод:\n{output}',
+                    'return_code': return_code,
+                    'stdout': result.stdout,
+                    'stderr': result.stderr
+                })
+            except subprocess.TimeoutExpired:
+                return jsonify({'error': 'Код превысил лимит времени выполнения (60 сек)'}), 408
+            except Exception as e:
+                return jsonify({'error': f'Ошибка выполнения кода: {str(e)}'}), 500
+
         else:
             return jsonify({'error': f'Неизвестный инструмент: {tool_name}'}), 400
             
