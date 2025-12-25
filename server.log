@@ -30,49 +30,73 @@
  * Running on http://127.0.0.1:5000
  * Running on http://192.168.0.2:5000
 [33mPress CTRL+C to quit[0m
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /index3.html HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /js/markdown-it.min.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /js/highlightjs/default-light.min.css HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /mathjax-offline/polyfill.min.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /js/highlightjs/default-dark.min.css HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /js/main.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /icon/logo.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /icon/plus.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /icon/model.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /icon/settings.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /icon/attach-file.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /icon/tools.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /js/highlightjs/highlight.min.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /icon/send.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /icon/stop.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:47] "GET /mathjax-offline/es5/tex-mml-chtml.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:48] "GET /js/titleHandler.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:48] "GET /settings HTTP/1.1" 200 -
-[2025-12-25 13:36:48,110] ERROR in server: Error syncing with ollama list: [Errno 2] No such file or directory: 'ollama'
-2025-12-25 13:36:48,110 - ERROR - Error syncing with ollama list: [Errno 2] No such file or directory: 'ollama'
-127.0.0.1 - - [25/Dec/2025 13:36:48] "GET /installed-models HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:48] "[36mGET /js/highlightjs/default-dark.min.css HTTP/1.1[0m" 304 -
-127.0.0.1 - - [25/Dec/2025 13:36:48] "GET /chats HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:48] "GET /chats/0 HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:48] "GET /icon/delete.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:48] "GET /icon/copy.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:48] "GET /icon/edit.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:36:48] "PUT /chats/0 HTTP/1.1" 200 -
-[2025-12-25 13:36:48,743] WARNING in server: generate_title: Dialog context for title: User: Hello
+127.0.0.1 - - [25/Dec/2025 14:38:03] "GET /index3.html HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:03] "GET /mathjax-offline/polyfill.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:03] "GET /js/markdown-it.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:03] "GET /icon/logo.png HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:03] "GET /js/main.js HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:03] "GET /js/highlightjs/default-light.min.css HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:03] "GET /icon/plus.png HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:03] "GET /js/highlightjs/default-dark.min.css HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /icon/model.png HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /icon/settings.png HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /icon/send.png HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /icon/attach-file.png HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /js/highlightjs/highlight.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /mathjax-offline/es5/tex-mml-chtml.js HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /icon/tools.png HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /icon/stop.png HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /js/titleHandler.js HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /settings HTTP/1.1" 200 -
+[2025-12-25 14:38:04,269] ERROR in server: Error syncing with ollama list: [Errno 2] No such file or directory: 'ollama'
+2025-12-25 14:38:04,269 - ERROR - Error syncing with ollama list: [Errno 2] No such file or directory: 'ollama'
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /installed-models HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "[36mGET /js/highlightjs/default-dark.min.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /chats HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /chats/0 HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /icon/delete.png HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /icon/edit.png HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "GET /icon/copy.png HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "PUT /chats/0 HTTP/1.1" 200 -
+[2025-12-25 14:38:04,922] WARNING in server: generate_title: Dialog context for title: User: Hello
 ---
 Assistant:
 ---
 User: Hello
-2025-12-25 13:36:48,743 - WARNING - generate_title: Dialog context for title: User: Hello
+---
+User: Hello
+---
+User: Hello
+---
+User: Hello
+---
+User: Hello
+2025-12-25 14:38:04,922 - WARNING - generate_title: Dialog context for title: User: Hello
 ---
 Assistant:
 ---
 User: Hello
-[2025-12-25 13:36:48,744] WARNING in server: generate_title: Final prompt for title (single message to LLM): Проанализируй следующий диалог:
+---
+User: Hello
+---
+User: Hello
+---
+User: Hello
+---
+User: Hello
+[2025-12-25 14:38:04,922] WARNING in server: generate_title: Final prompt for title (single message to LLM): Проанализируй следующий диалог:
 ---
 User: Hello
 ---
 Assistant:
+---
+User: Hello
+---
+User: Hello
+---
+User: Hello
+---
+User: Hello
 ---
 User: Hello
 ---
@@ -81,11 +105,19 @@ User: Hello
 Пожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.
 Пример: <title>Пример заголовка здесь</title>
 Не добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них.
-2025-12-25 13:36:48,744 - WARNING - generate_title: Final prompt for title (single message to LLM): Проанализируй следующий диалог:
+2025-12-25 14:38:04,922 - WARNING - generate_title: Final prompt for title (single message to LLM): Проанализируй следующий диалог:
 ---
 User: Hello
 ---
 Assistant:
+---
+User: Hello
+---
+User: Hello
+---
+User: Hello
+---
+User: Hello
 ---
 User: Hello
 ---
@@ -94,12 +126,12 @@ User: Hello
 Пожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.
 Пример: <title>Пример заголовка здесь</title>
 Не добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них.
-[2025-12-25 13:36:48,744] WARNING in server: generate_title: Sending payload to Ollama: {
+[2025-12-25 14:38:04,923] WARNING in server: generate_title: Sending payload to Ollama: {
   "model": "gemma3:12b",
   "messages": [
     {
       "role": "user",
-      "content": "Проанализируй следующий диалог:\n---\nUser: Hello\n---\nAssistant: \n---\nUser: Hello\n---\nТвоя задача: придумать ОЧЕНЬ краткий заголовок (от 3 до 7 слов) для этого диалога.\nЗаголовок должен быть на том же языке, на котором велся диалог.\nПожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.\nПример: <title>Пример заголовка здесь</title>\nНе добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них."
+      "content": "Проанализируй следующий диалог:\n---\nUser: Hello\n---\nAssistant: \n---\nUser: Hello\n---\nUser: Hello\n---\nUser: Hello\n---\nUser: Hello\n---\nUser: Hello\n---\nТвоя задача: придумать ОЧЕНЬ краткий заголовок (от 3 до 7 слов) для этого диалога.\nЗаголовок должен быть на том же языке, на котором велся диалог.\nПожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.\nПример: <title>Пример заголовка здесь</title>\nНе добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них."
     }
   ],
   "stream": false,
@@ -107,12 +139,12 @@ User: Hello
     "temperature": 0.4
   }
 }
-2025-12-25 13:36:48,744 - WARNING - generate_title: Sending payload to Ollama: {
+2025-12-25 14:38:04,923 - WARNING - generate_title: Sending payload to Ollama: {
   "model": "gemma3:12b",
   "messages": [
     {
       "role": "user",
-      "content": "Проанализируй следующий диалог:\n---\nUser: Hello\n---\nAssistant: \n---\nUser: Hello\n---\nТвоя задача: придумать ОЧЕНЬ краткий заголовок (от 3 до 7 слов) для этого диалога.\nЗаголовок должен быть на том же языке, на котором велся диалог.\nПожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.\nПример: <title>Пример заголовка здесь</title>\nНе добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них."
+      "content": "Проанализируй следующий диалог:\n---\nUser: Hello\n---\nAssistant: \n---\nUser: Hello\n---\nUser: Hello\n---\nUser: Hello\n---\nUser: Hello\n---\nUser: Hello\n---\nТвоя задача: придумать ОЧЕНЬ краткий заголовок (от 3 до 7 слов) для этого диалога.\nЗаголовок должен быть на том же языке, на котором велся диалог.\nПожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.\nПример: <title>Пример заголовка здесь</title>\nНе добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них."
     }
   ],
   "stream": false,
@@ -120,7 +152,7 @@ User: Hello
     "temperature": 0.4
   }
 }
-[2025-12-25 13:36:48,748] ERROR in server: generate_title: Request to Ollama failed: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
+[2025-12-25 14:38:04,927] ERROR in server: generate_title: Request to Ollama failed: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
 Traceback (most recent call last):
   File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 204, in _new_conn
     sock = connection.create_connection(
@@ -189,7 +221,7 @@ Traceback (most recent call last):
   File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py", line 677, in send
     raise ConnectionError(e, request=request)
 requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-2025-12-25 13:36:48,748 - ERROR - generate_title: Request to Ollama failed: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
+2025-12-25 14:38:04,927 - ERROR - generate_title: Request to Ollama failed: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
 Traceback (most recent call last):
   File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 204, in _new_conn
     sock = connection.create_connection(
@@ -258,489 +290,5 @@ Traceback (most recent call last):
   File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py", line 677, in send
     raise ConnectionError(e, request=request)
 requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-127.0.0.1 - - [25/Dec/2025 13:36:48] "[35m[1mPOST /generate-title HTTP/1.1[0m" 500 -
-127.0.0.1 - - [25/Dec/2025 13:36:48] "POST /generate-stream HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /index3.html HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /js/markdown-it.min.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /js/highlightjs/default-light.min.css HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /mathjax-offline/polyfill.min.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /js/highlightjs/default-dark.min.css HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /icon/logo.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /js/main.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /icon/plus.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /icon/model.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /icon/settings.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /icon/attach-file.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /icon/tools.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /js/highlightjs/highlight.min.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /icon/send.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /mathjax-offline/es5/tex-mml-chtml.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /icon/stop.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /js/titleHandler.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /settings HTTP/1.1" 200 -
-[2025-12-25 13:39:21,590] ERROR in server: Error syncing with ollama list: [Errno 2] No such file or directory: 'ollama'
-2025-12-25 13:39:21,590 - ERROR - Error syncing with ollama list: [Errno 2] No such file or directory: 'ollama'
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /installed-models HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "[36mGET /js/highlightjs/default-dark.min.css HTTP/1.1[0m" 304 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /chats HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /chats/0 HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /icon/delete.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /icon/copy.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:21] "GET /icon/edit.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:39:22] "PUT /chats/0 HTTP/1.1" 200 -
-[2025-12-25 13:39:22,238] WARNING in server: generate_title: Dialog context for title: User: Hello
----
-Assistant:
----
-User: Hello
----
-User: Hello
-2025-12-25 13:39:22,238 - WARNING - generate_title: Dialog context for title: User: Hello
----
-Assistant:
----
-User: Hello
----
-User: Hello
-[2025-12-25 13:39:22,238] WARNING in server: generate_title: Final prompt for title (single message to LLM): Проанализируй следующий диалог:
----
-User: Hello
----
-Assistant:
----
-User: Hello
----
-User: Hello
----
-Твоя задача: придумать ОЧЕНЬ краткий заголовок (от 3 до 7 слов) для этого диалога.
-Заголовок должен быть на том же языке, на котором велся диалог.
-Пожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.
-Пример: <title>Пример заголовка здесь</title>
-Не добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них.
-2025-12-25 13:39:22,238 - WARNING - generate_title: Final prompt for title (single message to LLM): Проанализируй следующий диалог:
----
-User: Hello
----
-Assistant:
----
-User: Hello
----
-User: Hello
----
-Твоя задача: придумать ОЧЕНЬ краткий заголовок (от 3 до 7 слов) для этого диалога.
-Заголовок должен быть на том же языке, на котором велся диалог.
-Пожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.
-Пример: <title>Пример заголовка здесь</title>
-Не добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них.
-[2025-12-25 13:39:22,238] WARNING in server: generate_title: Sending payload to Ollama: {
-  "model": "gemma3:12b",
-  "messages": [
-    {
-      "role": "user",
-      "content": "Проанализируй следующий диалог:\n---\nUser: Hello\n---\nAssistant: \n---\nUser: Hello\n---\nUser: Hello\n---\nТвоя задача: придумать ОЧЕНЬ краткий заголовок (от 3 до 7 слов) для этого диалога.\nЗаголовок должен быть на том же языке, на котором велся диалог.\nПожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.\nПример: <title>Пример заголовка здесь</title>\nНе добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них."
-    }
-  ],
-  "stream": false,
-  "options": {
-    "temperature": 0.4
-  }
-}
-2025-12-25 13:39:22,238 - WARNING - generate_title: Sending payload to Ollama: {
-  "model": "gemma3:12b",
-  "messages": [
-    {
-      "role": "user",
-      "content": "Проанализируй следующий диалог:\n---\nUser: Hello\n---\nAssistant: \n---\nUser: Hello\n---\nUser: Hello\n---\nТвоя задача: придумать ОЧЕНЬ краткий заголовок (от 3 до 7 слов) для этого диалога.\nЗаголовок должен быть на том же языке, на котором велся диалог.\nПожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.\nПример: <title>Пример заголовка здесь</title>\nНе добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них."
-    }
-  ],
-  "stream": false,
-  "options": {
-    "temperature": 0.4
-  }
-}
-[2025-12-25 13:39:22,241] ERROR in server: generate_title: Request to Ollama failed: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 204, in _new_conn
-    sock = connection.create_connection(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py", line 85, in create_connection
-    raise err
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py", line 73, in create_connection
-    sock.connect(sa)
-ConnectionRefusedError: [Errno 111] Connection refused
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py", line 787, in urlopen
-    response = self._make_request(
-               ^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py", line 493, in _make_request
-    conn.request(
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 500, in request
-    self.endheaders()
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/http/client.py", line 1333, in endheaders
-    self._send_output(message_body, encode_chunked=encode_chunked)
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/http/client.py", line 1093, in _send_output
-    self.send(msg)
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/http/client.py", line 1037, in send
-    self.connect()
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 331, in connect
-    self.sock = self._new_conn()
-                ^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 219, in _new_conn
-    raise NewConnectionError(
-urllib3.exceptions.NewConnectionError: HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py", line 644, in send
-    resp = conn.urlopen(
-           ^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py", line 841, in urlopen
-    retries = retries.increment(
-              ^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/retry.py", line 519, in increment
-    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/app/server.py", line 210, in generate_title
-    resp = requests.post(f"{OLLAMA_API}/api/chat", json=payload, timeout=60)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py", line 115, in post
-    return request("post", url, data=data, json=json, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py", line 59, in request
-    return session.request(method=method, url=url, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py", line 589, in request
-    resp = self.send(prep, **send_kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py", line 703, in send
-    r = adapter.send(request, **kwargs)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py", line 677, in send
-    raise ConnectionError(e, request=request)
-requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-2025-12-25 13:39:22,241 - ERROR - generate_title: Request to Ollama failed: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 204, in _new_conn
-    sock = connection.create_connection(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py", line 85, in create_connection
-    raise err
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py", line 73, in create_connection
-    sock.connect(sa)
-ConnectionRefusedError: [Errno 111] Connection refused
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py", line 787, in urlopen
-    response = self._make_request(
-               ^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py", line 493, in _make_request
-    conn.request(
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 500, in request
-    self.endheaders()
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/http/client.py", line 1333, in endheaders
-    self._send_output(message_body, encode_chunked=encode_chunked)
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/http/client.py", line 1093, in _send_output
-    self.send(msg)
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/http/client.py", line 1037, in send
-    self.connect()
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 331, in connect
-    self.sock = self._new_conn()
-                ^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 219, in _new_conn
-    raise NewConnectionError(
-urllib3.exceptions.NewConnectionError: HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py", line 644, in send
-    resp = conn.urlopen(
-           ^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py", line 841, in urlopen
-    retries = retries.increment(
-              ^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/retry.py", line 519, in increment
-    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/app/server.py", line 210, in generate_title
-    resp = requests.post(f"{OLLAMA_API}/api/chat", json=payload, timeout=60)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py", line 115, in post
-    return request("post", url, data=data, json=json, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py", line 59, in request
-    return session.request(method=method, url=url, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py", line 589, in request
-    resp = self.send(prep, **send_kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py", line 703, in send
-    r = adapter.send(request, **kwargs)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py", line 677, in send
-    raise ConnectionError(e, request=request)
-requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-127.0.0.1 - - [25/Dec/2025 13:39:22] "[35m[1mPOST /generate-title HTTP/1.1[0m" 500 -
-127.0.0.1 - - [25/Dec/2025 13:39:22] "POST /generate-stream HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /index3.html HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /js/highlightjs/default-light.min.css HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /mathjax-offline/polyfill.min.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /icon/logo.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /js/highlightjs/default-dark.min.css HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /js/main.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /js/markdown-it.min.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /icon/model.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /icon/plus.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /icon/settings.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /icon/attach-file.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /mathjax-offline/es5/tex-mml-chtml.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /js/highlightjs/highlight.min.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /icon/tools.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /icon/send.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /icon/stop.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /js/titleHandler.js HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /settings HTTP/1.1" 200 -
-[2025-12-25 13:41:34,951] ERROR in server: Error syncing with ollama list: [Errno 2] No such file or directory: 'ollama'
-2025-12-25 13:41:34,951 - ERROR - Error syncing with ollama list: [Errno 2] No such file or directory: 'ollama'
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /installed-models HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "[36mGET /js/highlightjs/default-dark.min.css HTTP/1.1[0m" 304 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /chats HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /chats/0 HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /icon/delete.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /icon/copy.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:34] "GET /icon/edit.png HTTP/1.1" 200 -
-127.0.0.1 - - [25/Dec/2025 13:41:35] "PUT /chats/0 HTTP/1.1" 200 -
-[2025-12-25 13:41:35,598] WARNING in server: generate_title: Dialog context for title: User: Hello
----
-Assistant:
----
-User: Hello
----
-User: Hello
----
-User: Hello
-2025-12-25 13:41:35,598 - WARNING - generate_title: Dialog context for title: User: Hello
----
-Assistant:
----
-User: Hello
----
-User: Hello
----
-User: Hello
-[2025-12-25 13:41:35,598] WARNING in server: generate_title: Final prompt for title (single message to LLM): Проанализируй следующий диалог:
----
-User: Hello
----
-Assistant:
----
-User: Hello
----
-User: Hello
----
-User: Hello
----
-Твоя задача: придумать ОЧЕНЬ краткий заголовок (от 3 до 7 слов) для этого диалога.
-Заголовок должен быть на том же языке, на котором велся диалог.
-Пожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.
-Пример: <title>Пример заголовка здесь</title>
-Не добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них.
-2025-12-25 13:41:35,598 - WARNING - generate_title: Final prompt for title (single message to LLM): Проанализируй следующий диалог:
----
-User: Hello
----
-Assistant:
----
-User: Hello
----
-User: Hello
----
-User: Hello
----
-Твоя задача: придумать ОЧЕНЬ краткий заголовок (от 3 до 7 слов) для этого диалога.
-Заголовок должен быть на том же языке, на котором велся диалог.
-Пожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.
-Пример: <title>Пример заголовка здесь</title>
-Не добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них.
-[2025-12-25 13:41:35,598] WARNING in server: generate_title: Sending payload to Ollama: {
-  "model": "gemma3:12b",
-  "messages": [
-    {
-      "role": "user",
-      "content": "Проанализируй следующий диалог:\n---\nUser: Hello\n---\nAssistant: \n---\nUser: Hello\n---\nUser: Hello\n---\nUser: Hello\n---\nТвоя задача: придумать ОЧЕНЬ краткий заголовок (от 3 до 7 слов) для этого диалога.\nЗаголовок должен быть на том же языке, на котором велся диалог.\nПожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.\nПример: <title>Пример заголовка здесь</title>\nНе добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них."
-    }
-  ],
-  "stream": false,
-  "options": {
-    "temperature": 0.4
-  }
-}
-2025-12-25 13:41:35,598 - WARNING - generate_title: Sending payload to Ollama: {
-  "model": "gemma3:12b",
-  "messages": [
-    {
-      "role": "user",
-      "content": "Проанализируй следующий диалог:\n---\nUser: Hello\n---\nAssistant: \n---\nUser: Hello\n---\nUser: Hello\n---\nUser: Hello\n---\nТвоя задача: придумать ОЧЕНЬ краткий заголовок (от 3 до 7 слов) для этого диалога.\nЗаголовок должен быть на том же языке, на котором велся диалог.\nПожалуйста, помести заголовок ВНУТРИ тегов <title> и </title>.\nПример: <title>Пример заголовка здесь</title>\nНе добавляй никаких своих мыслей, объяснений или комментариев вне тегов <title>. Твой ответ должен содержать ТОЛЬКО теги <title> и заголовок внутри них."
-    }
-  ],
-  "stream": false,
-  "options": {
-    "temperature": 0.4
-  }
-}
-[2025-12-25 13:41:35,600] ERROR in server: generate_title: Request to Ollama failed: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 204, in _new_conn
-    sock = connection.create_connection(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py", line 85, in create_connection
-    raise err
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py", line 73, in create_connection
-    sock.connect(sa)
-ConnectionRefusedError: [Errno 111] Connection refused
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py", line 787, in urlopen
-    response = self._make_request(
-               ^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py", line 493, in _make_request
-    conn.request(
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 500, in request
-    self.endheaders()
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/http/client.py", line 1333, in endheaders
-    self._send_output(message_body, encode_chunked=encode_chunked)
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/http/client.py", line 1093, in _send_output
-    self.send(msg)
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/http/client.py", line 1037, in send
-    self.connect()
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 331, in connect
-    self.sock = self._new_conn()
-                ^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 219, in _new_conn
-    raise NewConnectionError(
-urllib3.exceptions.NewConnectionError: HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py", line 644, in send
-    resp = conn.urlopen(
-           ^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py", line 841, in urlopen
-    retries = retries.increment(
-              ^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/retry.py", line 519, in increment
-    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/app/server.py", line 210, in generate_title
-    resp = requests.post(f"{OLLAMA_API}/api/chat", json=payload, timeout=60)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py", line 115, in post
-    return request("post", url, data=data, json=json, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py", line 59, in request
-    return session.request(method=method, url=url, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py", line 589, in request
-    resp = self.send(prep, **send_kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py", line 703, in send
-    r = adapter.send(request, **kwargs)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py", line 677, in send
-    raise ConnectionError(e, request=request)
-requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-2025-12-25 13:41:35,600 - ERROR - generate_title: Request to Ollama failed: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 204, in _new_conn
-    sock = connection.create_connection(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py", line 85, in create_connection
-    raise err
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py", line 73, in create_connection
-    sock.connect(sa)
-ConnectionRefusedError: [Errno 111] Connection refused
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py", line 787, in urlopen
-    response = self._make_request(
-               ^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py", line 493, in _make_request
-    conn.request(
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 500, in request
-    self.endheaders()
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/http/client.py", line 1333, in endheaders
-    self._send_output(message_body, encode_chunked=encode_chunked)
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/http/client.py", line 1093, in _send_output
-    self.send(msg)
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/http/client.py", line 1037, in send
-    self.connect()
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 331, in connect
-    self.sock = self._new_conn()
-                ^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py", line 219, in _new_conn
-    raise NewConnectionError(
-urllib3.exceptions.NewConnectionError: HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py", line 644, in send
-    resp = conn.urlopen(
-           ^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py", line 841, in urlopen
-    retries = retries.increment(
-              ^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/retry.py", line 519, in increment
-    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/app/server.py", line 210, in generate_title
-    resp = requests.post(f"{OLLAMA_API}/api/chat", json=payload, timeout=60)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py", line 115, in post
-    return request("post", url, data=data, json=json, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py", line 59, in request
-    return session.request(method=method, url=url, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py", line 589, in request
-    resp = self.send(prep, **send_kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py", line 703, in send
-    r = adapter.send(request, **kwargs)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py", line 677, in send
-    raise ConnectionError(e, request=request)
-requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError("HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused"))
-127.0.0.1 - - [25/Dec/2025 13:41:35] "[35m[1mPOST /generate-title HTTP/1.1[0m" 500 -
-127.0.0.1 - - [25/Dec/2025 13:41:35] "POST /generate-stream HTTP/1.1" 200 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "[35m[1mPOST /generate-title HTTP/1.1[0m" 500 -
+127.0.0.1 - - [25/Dec/2025 14:38:04] "POST /generate-stream HTTP/1.1" 200 -

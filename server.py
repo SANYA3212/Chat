@@ -148,18 +148,115 @@ def generate():
 
 @app.route('/generate-stream', methods=['POST'])
 def generate_stream():
-    def generate_mock():
-        mock_response = "This is a mocked response from the assistant."
-        for char in mock_response:
-            time.sleep(0.05)
-            message = {
-                "message": {
-                    "content": char
-                }
-            }
-            yield f"data: {json.dumps(message)}\n\n"
 
-    return Response(generate_mock(), mimetype='text/event-stream')
+    try:
+        data = request.json
+        if "modelhs" in data:
+            model = data["modelhs"][-1] if data["modelhs"] else current_model
+        else:
+            model = data.get('model', current_model)
+
+        # Получаем сообщение пользователя
+        user_message = data.get('message', '')
+        tools_enabled = data.get('tools_enabled', False)
+
+        if "history" in data:
+            messages = data["history"]
+        else:
+            messages = data.get('messages', [])
+
+        # Если есть новое сообщение пользователя, добавляем его
+        if user_message:
+            messages.append({"role": "user", "content": user_message})
+
+        # Если включены инструменты, добавляем их в системное сообщение (серверная логика, если клиент не прислал свой)
+        if tools_enabled and not any(msg['role'] == 'system' for msg in messages):
+            system_message_content = """Ты AI-ассистент с полным доступом к компьютеру пользователя.
+Это доступные инструменты. Используй их только при необходимости и только по одному за раз.
+Формат вызова: [TOOL_CALL] имя_инструмента({"параметр1": "значение1", "параметр2": "значение2"})
+Всегда используй двойные кавычки для ключей и строковых значений в JSON.
+Для путей в Windows используй двойной обратный слеш: "C:\\Users\\User\\file.txt".
+
+Доступные инструменты:
+📁 ФАЙЛОВАЯ СИСТЕМА:
+- list_drives: Просмотр всех дисков.
+  Параметры: нет.
+  Пример: [TOOL_CALL] list_drives({})
+- create_file: Создание/перезапись файла с содержимым.
+  Параметры: {"filename": "полный_путь_к_файлу", "content": "содержимое"}
+  Пример: [TOOL_CALL] create_file({"filename": "C:\\temp\\new.txt", "content": "Hello!"})
+- read_file: Чтение текстового файла.
+  Параметры: {"filename": "полный_путь_к_файлу"}
+  Пример: [TOOL_CALL] read_file({"filename": "C:\\boot.ini"})
+- edit_file: Редактирование существующего файла (старое содержимое заменяется новым).
+  Параметры: {"filename": "полный_путь_к_файлу", "content": "новое_содержимое"}
+- create_directory: Создание новой папки.
+  Параметры: {"dirname": "полный_путь_к_папке"}
+  Пример: [TOOL_CALL] create_directory({"dirname": "C:\\NewFolder"})
+- list_files: Просмотр содержимого папки.
+  Параметры: {"path": "путь_к_папке"} (если path не указан, используется текущий или корневой каталог)
+  Пример: [TOOL_CALL] list_files({"path": "D:\\Downloads"})
+- delete_file: Удаление файла или папки (включая содержимое папки).
+  Параметры: {"filename": "полный_путь_к_файлу_или_папке"}
+- file_operations: Расширенные файловые операции.
+  Параметры: {"operation": "copy"|"move"|"search"|"permissions", "source": "путь_источник", "destination": "путь_назначение" (для copy/move), "pattern": "шаблон" (для search)}
+  Пример (поиск): [TOOL_CALL] file_operations({"operation": "search", "source": "C:\\Users", "pattern": "*.docx"})
+
+💻 СИСТЕМНОЕ УПРАВЛЕНИЕ:
+- execute_command: Выполнение команды в терминале (cmd/bash).
+  Параметры: {"command": "команда_с_аргументами"}
+  Пример: [TOOL_CALL] execute_command({"command": "ipconfig /all"})
+- run_application: Запуск приложения.
+  Параметры: {"app_name": "имя.exe"} (для программ из PATH) ИЛИ {"app_path": "полный_путь_к\\имя.exe"}. Можно добавить {"arguments": "аргументы"}.
+  Пример (имя): [TOOL_CALL] run_application({"app_name": "notepad.exe"})
+  Пример (путь): [TOOL_CALL] run_application({"app_path": "C:\\Program Files\\MyApp\\app.exe", "arguments": "--nogui"})
+- get_system_info: Общая информация о системе (ОС, CPU, GPU, память, диски).
+  Параметры: нет.
+  Пример: [TOOL_CALL] get_system_info({})
+- manage_processes: Управление процессами.
+  Параметры: {"action": "list"|"kill"|"info", "process_name": "имя_процесса" (для kill/info), "process_id": id_процесса (для kill/info), "force": true/false (для kill, необязательно)}
+  Пример (список): [TOOL_CALL] manage_processes({"action": "list"})
+  Пример (завершить): [TOOL_CALL] manage_processes({"action": "kill", "process_name": "notepad.exe"})
+  Пример (завершить принудительно по PID): [TOOL_CALL] manage_processes({"action": "kill", "process_id": 1234, "force": true})
+- network_info: Информация о сетевых интерфейсах и соединениях.
+  Параметры: нет.
+- manage_services: Управление службами (Windows/Linux).
+  Параметры: {"action": "list"|"start"|"stop"|"restart"|"status", "service_name": "имя_службы"}
+  Пример: [TOOL_CALL] manage_services({"action": "status", "service_name": " наиболееwuauserv"})
+- find_executable: Поиск исполняемого файла в системных путях.
+  Параметры: {"executable_name": "имя_файла.exe"}
+  Пример: [TOOL_CALL] find_executable({"executable_name": "python.exe"})
+
+Отвечай на языке пользователя."""
+            system_message = {"role": "system", "content": system_message_content}
+            messages.insert(0, system_message)
+
+        payload = {
+            "model": model,
+            "messages": messages,
+            "stream": True,
+            "keep_alive": "30m"
+        }
+
+        options = {}
+        model_temp = settings.get("model_temperature")
+        if model_temp is not None:
+            try:
+                options["temperature"] = float(model_temp)
+            except ValueError:
+                app.logger.warning(f"Invalid temperature value in settings: {model_temp}. Using Ollama's default.")
+
+        if options:
+            payload["options"] = options
+
+        resp = requests.post(f"{OLLAMA_API}/api/chat", json=payload, stream=True, timeout=120)
+        def generate():
+            for line in resp.iter_lines():
+                if line:
+                    yield f"data: {line.decode('utf-8')}\n\n"
+        return Response(generate(), mimetype='text/event-stream')
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/generate-title', methods=['POST'])
 def generate_title():
@@ -491,7 +588,7 @@ def execute_tool():
             drives_list = '\n'.join(drives) if drives else 'Диски не найдены'
             return jsonify({'result': f'Доступные диски и основные папки:\n{drives_list}'})
         
-        elif tool_name == 'write_file':
+        elif tool_name == 'create_file':
             filename = parameters.get('filename')
             content = parameters.get('content', '')
             
@@ -658,60 +755,36 @@ def execute_tool():
             except PermissionError:
                 return jsonify({'error': f'Нет доступа для удаления {filename}'}), 403
         
-        elif tool_name == 'execute_python_code':
-            code = parameters.get('code')
-            if not code:
-                return jsonify({'error': 'No code provided to execute'}), 400
+        elif tool_name == 'edit_file':
+            filename = parameters.get('filename')
+            content = parameters.get('content', '')
+
+            if not filename:
+                return jsonify({'error': 'Не указано имя файла'}), 400
+
+            # Поддержка абсолютных и относительных путей
+            if not os.path.isabs(filename):
+                filename = os.path.abspath(filename)
+
+            if not os.path.exists(filename):
+                return jsonify({'error': f'Файл {filename} не найден'}), 404
+
+            if not os.path.isfile(filename):
+                return jsonify({'error': f'{filename} не является файлом'}), 400
             
             try:
-                # We will write the code to a temporary file and execute it.
-                # This is safer than using exec() directly and allows for better capture of stdout/stderr.
-                import tempfile
-                with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.py', encoding='utf-8') as temp_file:
-                    temp_file.write(code)
-                    temp_filepath = temp_file.name
+                # Создаем резервную копию
+                backup_filename = filename + '.backup'
+                import shutil
+                shutil.copy2(filename, backup_filename)
                 
-                # Find python executable
-                python_executable = None
-                try:
-                    import sys
-                    python_executable = sys.executable
-                except:
-                    python_executable = 'python' # fallback
+                # Записываем новое содержимое
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write(content)
 
-                if not python_executable:
-                     return jsonify({'error': 'Could not find python executable'}), 500
-
-                # Execute the script
-                result = subprocess.run(
-                    [python_executable, temp_filepath],
-                    capture_output=True,
-                    text=True,
-                    timeout=60, # 60 seconds timeout
-                    encoding='utf-8'
-                )
-
-                # Clean up the temporary file
-                os.remove(temp_filepath)
-
-                output = result.stdout if result.stdout else result.stderr
-                return_code = result.returncode
-
-                return jsonify({
-                    'result': f'Python script executed (return code: {return_code})\nOutput:\n{output}',
-                    'return_code': return_code,
-                    'stdout': result.stdout,
-                    'stderr': result.stderr
-                })
-
-            except subprocess.TimeoutExpired:
-                if temp_filepath and os.path.exists(temp_filepath):
-                    os.remove(temp_filepath)
-                return jsonify({'error': 'Python script execution timed out (60 seconds)'}), 408
+                return jsonify({'result': f'Файл {filename} отредактирован успешно (резервная копия: {backup_filename})'})
             except Exception as e:
-                if temp_filepath and os.path.exists(temp_filepath):
-                    os.remove(temp_filepath)
-                return jsonify({'error': f'Error executing Python script: {str(e)}'}), 500
+                return jsonify({'error': f'Ошибка при редактировании файла: {str(e)}'}), 500
         
         elif tool_name == 'execute_command':
             command = parameters.get('command')
@@ -1281,39 +1354,6 @@ CPU: {proc_info['cpu_percent']:.1f}%
                     
             except Exception as e:
                 return jsonify({'error': f'Ошибка файловой операции: {str(e)}'}), 500
-
-        elif tool_name == 'get_screenshot':
-            try:
-                import pyautogui
-                import tempfile
-                import time
-
-                screenshot = pyautogui.screenshot()
-
-                # Create a unique filename
-                timestamp = int(time.time())
-                filename = f"screenshot_{timestamp}.png"
-
-                # Save screenshot to the temporary directory
-                screenshot_path = os.path.join(tempfile.gettempdir(), filename)
-                screenshot.save(screenshot_path)
-
-                return jsonify({'result': f'Screenshot taken and saved to temporary path: {screenshot_path}'})
-            except Exception as e:
-                return jsonify({'error': f'Failed to take screenshot: {e}'}), 500
-
-        elif tool_name == 'click_at_coordinates':
-            x = parameters.get('x')
-            y = parameters.get('y')
-            if x is None or y is None:
-                return jsonify({'error': 'X and Y coordinates must be provided'}), 400
-
-            try:
-                import pyautogui
-                pyautogui.click(x, y)
-                return jsonify({'result': f'Clicked at coordinates ({x}, {y})'})
-            except Exception as e:
-                return jsonify({'error': f'Failed to click at coordinates: {e}'}), 500
 
         elif tool_name == 'find_executable':
             executable_name = parameters.get('executable_name')
