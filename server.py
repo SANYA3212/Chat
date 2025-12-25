@@ -148,145 +148,18 @@ def generate():
 
 @app.route('/generate-stream', methods=['POST'])
 def generate_stream():
-     
-    try:
-        data = request.json
-        if "modelhs" in data:
-            model = data["modelhs"][-1] if data["modelhs"] else current_model
-        else:
-            model = data.get('model', current_model)
-        
-        # Получаем сообщение пользователя
-        user_message = data.get('message', '')
-        tools_enabled = data.get('tools_enabled', False)
-        
-        if "history" in data:
-            messages = data["history"]
-        else:
-            messages = data.get('messages', [])
-        
-        # Если есть новое сообщение пользователя, добавляем его
-        if user_message:
-            messages.append({"role": "user", "content": user_message})
-        
-        # Если включены инструменты, добавляем их в системное сообщение (серверная логика, если клиент не прислал свой)
-        if tools_enabled and not any(msg['role'] == 'system' for msg in messages):
-            system_message_content = """Ты AI-ассистент с полным доступом к компьютеру пользователя.
-Это доступные инструменты. Используй их только при необходимости и только по одному за раз.
-Формат вызова: [TOOL_CALL] имя_инструмента({"параметр1": "значение1", "параметр2": "значение2"})
-Всегда используй двойные кавычки для ключей и строковых значений в JSON.
-Для путей в Windows используй двойной обратный слеш: "C:\\Users\\User\\file.txt".
+    def generate_mock():
+        mock_response = "This is a mocked response from the assistant."
+        for char in mock_response:
+            time.sleep(0.05)
+            message = {
+                "message": {
+                    "content": char
+                }
+            }
+            yield f"data: {json.dumps(message)}\n\n"
 
-Доступные инструменты:
-📁 ФАЙЛОВАЯ СИСТЕМА:
-- list_drives: Просмотр всех дисков.
-  Параметры: нет.
-  Пример: [TOOL_CALL] list_drives({})
-- write_file: Создание или перезапись файла с указанным содержимым.
-  Параметры: {"filename": "полный_путь_к_файлу", "content": "содержимое"}
-  Пример: [TOOL_CALL] write_file({"filename": "C:\\data\\new_document.txt", "content": "Это содержимое документа."})
-- read_file: Чтение текстового файла.
-  Параметры: {"filename": "полный_путь_к_файлу"}
-  Пример: [TOOL_CALL] read_file({"filename": "C:\\boot.ini"})
-- create_directory: Создание новой папки.
-  Параметры: {"dirname": "полный_путь_к_папке"}
-  Пример: [TOOL_CALL] create_directory({"dirname": "C:\\NewFolder"})
-- list_files: Просмотр содержимого папки.
-  Параметры: {"path": "путь_к_папке"} (если path не указан, используется текущий или корневой каталог)
-  Пример: [TOOL_CALL] list_files({"path": "D:\\Downloads"})
-- delete_file: Удаление файла или папки (включая содержимое папки).
-  Параметры: {"filename": "полный_путь_к_файлу_или_папке"}
-- file_operations: Расширенные файловые операции.
-  Параметры: {"operation": "copy"|"move"|"search"|"permissions", "source": "путь_источник", "destination": "путь_назначение" (для copy/move), "pattern": "шаблон" (для search)}
-  Пример (поиск): [TOOL_CALL] file_operations({"operation": "search", "source": "C:\\Users", "pattern": "*.docx"})
-
-💻 СИСТЕМНОЕ УПРАВЛЕНИЕ:
-- execute_python_code: Выполнение Python кода.
-  Параметры: {"code": "ваш_python_код"}
-  Пример: [TOOL_CALL] execute_python_code({"code": "print('Hello from Python!')"})
-- execute_command: Выполнение команды в терминале (cmd/bash).
-  Параметры: {"command": "команда_с_аргументами"}
-  Пример: [TOOL_CALL] execute_command({"command": "ipconfig /all"})
-- run_application: Запуск приложения.
-  Параметры: {"app_name": "имя.exe"} (для программ из PATH) ИЛИ {"app_path": "полный_путь_к\\имя.exe"}. Можно добавить {"arguments": "аргументы"}.
-  Пример (имя): [TOOL_CALL] run_application({"app_name": "notepad.exe"})
-  Пример (путь): [TOOL_CALL] run_application({"app_path": "C:\\Program Files\\MyApp\\app.exe", "arguments": "--nogui"})
-- get_system_info: Общая информация о системе (ОС, CPU, GPU, память, диски).
-  Параметры: нет.
-  Пример: [TOOL_CALL] get_system_info({})
-- manage_processes: Управление процессами.
-  Параметры: {"action": "list"|"kill"|"info", "process_name": "имя_процесса" (для kill/info), "process_id": id_процесса (для kill/info), "force": true/false (для kill, необязательно)}
-  Пример (список): [TOOL_CALL] manage_processes({"action": "list"})
-  Пример (завершить): [TOOL_CALL] manage_processes({"action": "kill", "process_name": "notepad.exe"})
-  Пример (завершить принудительно по PID): [TOOL_CALL] manage_processes({"action": "kill", "process_id": 1234, "force": true})
-- network_info: Информация о сетевых интерфейсах и соединениях.
-  Параметры: нет.
-- manage_services: Управление службами (Windows/Linux).
-  Параметры: {"action": "list"|"start"|"stop"|"restart"|"status", "service_name": "имя_службы"}
-  Пример: [TOOL_CALL] manage_services({"action": "status", "service_name": " наиболееwuauserv"})
-- find_executable: Поиск исполняемого файла в системных путях.
-  Параметры: {"executable_name": "имя_файла.exe"}
-  Пример: [TOOL_CALL] find_executable({"executable_name": "python.exe"})
-
-🖱️ УПРАВЛЕНИЕ ГРАФИЧЕСКИМ ИНТЕРФЕЙСОМ (GUI):
-- get_screenshot: Сделать снимок всего экрана.
-  Параметры: нет.
-  Пример: [TOOL_CALL] get_screenshot({})
-- click_at_coordinates: Кликнуть мышью по указанным координатам.
-  Параметры: {"x": X_координата, "y": Y_координата}
-  Пример: [TOOL_CALL] click_at_coordinates({"x": 1024, "y": 768})
-
-ВАЖНЫЙ РАБОЧИЙ ПРОЦЕСС:
-1.  **Анализ Задачи:** Внимательно проанализируй запрос пользователя.
-2.  **Декомпозиция и План:** Если задача сложная и требует нескольких шагов, сначала составь план. Опиши шаги в виде нумерованного списка.
-3.  **Ожидание Утверждения:** Помести этот план в теги `<plan> ... </plan>` и отправь его пользователю. НЕ ВЫПОЛНЯЙ никаких инструментов, пока не получишь от пользователя сообщение с явным согласием (например, "да", "продолжай", "утверждаю").
-4.  **Выполнение по Шагам:** После получения утверждения, выполняй план шаг за шагом. Используй вызовы инструментов по одному за раз.
-5.  **Промежуточные Результаты:** После каждого шага кратко сообщай о результате.
-
-Пример рабочего процесса:
-Пользователь: "Создай в папке C:\temp файл с текстом 'привет' и затем прочитай его."
-
-Твой первый ответ (план):
-<plan>
-1. Создать файл `C:\temp\greeting.txt` с содержимым "привет".
-2. Прочитать содержимое файла `C:\temp\greeting.txt`.
-</plan>
-
-Пользователь: "Да, давай."
-
-Твой второй ответ (выполнение первого шага):
-[TOOL_CALL] create_file({"filename": "C:\\temp\\greeting.txt", "content": "привет"})
-
-Отвечай на языке пользователя."""
-            system_message = {"role": "system", "content": system_message_content}
-            messages.insert(0, system_message)
-        
-        payload = {
-            "model": model,
-            "messages": messages,
-            "stream": True,
-            "keep_alive": "30m"
-        }
-
-        options = {}
-        model_temp = settings.get("model_temperature")
-        if model_temp is not None:
-            try:
-                options["temperature"] = float(model_temp)
-            except ValueError:
-                app.logger.warning(f"Invalid temperature value in settings: {model_temp}. Using Ollama's default.")
-        
-        if options:
-            payload["options"] = options
-
-        resp = requests.post(f"{OLLAMA_API}/api/chat", json=payload, stream=True, timeout=120)
-        def generate():
-            for line in resp.iter_lines():
-                if line:
-                    yield f"data: {line.decode('utf-8')}\n\n"
-        return Response(generate(), mimetype='text/event-stream')
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return Response(generate_mock(), mimetype='text/event-stream')
 
 @app.route('/generate-title', methods=['POST'])
 def generate_title():
@@ -817,7 +690,7 @@ def execute_tool():
                     timeout=60, # 60 seconds timeout
                     encoding='utf-8'
                 )
-                
+
                 # Clean up the temporary file
                 os.remove(temp_filepath)
 

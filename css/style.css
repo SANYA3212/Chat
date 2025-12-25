@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <title>S/E Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="js/markdown-it.min.js"></script>
-  <style>
+
     /* Обновленные цвета кнопок */
     :root {
       --primary: #4166d5;
@@ -207,7 +200,6 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      text-align: left;
     }
 
     .chat-delete-btn {
@@ -569,7 +561,7 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       transition: var(--transition);
       padding: 3px; /* Changed padding around the image */
-      box-sizing: border-box; 
+      box-sizing: border-box;
     }
 
     .input-area button:hover {
@@ -630,7 +622,9 @@
       justify-content: center;
       border-radius: 50%;
       transition: var(--transition);
-      padding: 0;
+      padding: 3px; /* Consistent padding */
+      display: inline-flex; /* Ensure it wraps content */
+      /* box-sizing: border-box; is inherited */
     }
 
     #imageUploadBtn:hover {
@@ -982,22 +976,22 @@
       scrollbar-width: thin;
       scrollbar-color: var(--scroll-thumb) transparent;
     }
-    
+
     .chat-window::-webkit-scrollbar {
       width: 10px;
     }
-    
+
     .chat-window::-webkit-scrollbar-track {
       background: transparent;
     }
-    
+
     .chat-window::-webkit-scrollbar-thumb {
       background-color: var(--scroll-thumb);
       border-radius: 10px;
       border: 3px solid transparent;
       background-clip: content-box;
     }
-    
+
     .chat-window::-webkit-scrollbar-thumb:hover {
       background-color: var(--primary);
     }
@@ -1050,16 +1044,6 @@
         background-color: var(--main-bg);
     }
 
-    .tps-counter {
-        background-color: #2a2a2e;
-        color: var(--text-secondary);
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 12px;
-        margin-top: 8px;
-        display: none; /* Hidden by default */
-    }
-
 @media screen and (max-width: 768px) {
   .sidebar {
     position: fixed; /* Поверх контента */
@@ -1101,7 +1085,7 @@
     max-width: 100%; /* Поле ввода занимает почти всю ширину */
     padding: 0 5px;
   }
-  
+
   .chat-content {
     padding: 10px 10px 10px 15px; /* Уменьшить отступы у сообщений */
   }
@@ -1111,7 +1095,7 @@
     padding: 10px 12px 10px 15px;
     font-size: 0.95em;
   }
-  
+
   .modal-content {
     margin: 10% auto; /* Уменьшить верхний отступ для модалок */
     padding: 20px;
@@ -1135,7 +1119,7 @@
   /* Чтобы тело не скроллилось, когда сайдбар открыт (если он поверх) */
   body.sidebar-open-mobile .main {
     /* Можно добавить эффект затемнения или блокировки */
-    /* filter: blur(2px); */ 
+    /* filter: blur(2px); */
   }
 }
 
@@ -1169,183 +1153,9 @@
     width: 260px; /* Чуть уже для очень маленьких экранов */
   }
   .sidebar:not(.collapsed) + .toggle-sidebar {
-    left: 270px; 
+    left: 270px;
   }
   #sidebarModelInstallProgressContainer {
     font-size: 0.9em;
   }
 }
-  </style>
-  <link rel="stylesheet" id="highlight-light-theme" href="js/highlightjs/default-light.min.css" media="all" disabled>
-  <link rel="stylesheet" id="highlight-dark-theme" href="js/highlightjs/default-dark.min.css" media="all" disabled>
-  
-  <!-- MathJax Configuration -->
-  <script>
-    MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']],
-        processEscapes: true,
-        processEnvironments: true
-      },
-      options: {
-        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-      }
-    };
-  </script>
-  <!-- Local MathJax files for offline use -->
-  <script src="mathjax-offline/polyfill.min.js"></script>
-  <script id="MathJax-script" async src="mathjax-offline/es5/tex-mml-chtml.js"></script>
-</head>
-<body>
-  <!-- Левая панель (список чатов) -->
-  <div class="sidebar" id="sidebar">
-    <div class="header">
-      <img src="icon/logo.png" alt="Logo" class="logo">
-      <h1 id="headerTitle">S/E Chat</h1>
-      <div class="current-model" id="currentModelDisplay">...</div>
-      <button id="newChat">
-        <img src="icon/plus.png" alt="New Chat" style="width:28px;height:28px;">
-        New Chat
-      </button>
-      <button id="changeModel">
-        <img src="icon/model.png" alt="Change Model" style="width:28px;height:28px;">
-        Change Model
-      </button>
-      <button id="openSettings">
-        <img src="icon/settings.png" alt="Settings" style="width:28px;height:28px;">
-        Settings
-      </button>
-    </div>
-    <div id="sidebarModelInstallProgressContainer" style="display:none; margin-top: 15px; padding: 10px; background-color: var(--card-bg); border-radius: 8px; text-align: center;">
-      <div id="sidebarProgressLabel" style="font-size: 0.9em; margin-bottom: 5px; color: var(--text-secondary);">Installing model...</div>
-      <div class="progress-container" style="height: 10px; background-color: var(--main-bg);">
-        <div id="sidebarProgressFill" class="progress-fill" style="width: 0%; height: 100%;"></div> 
-      </div>
-      <div id="sidebarProgressText" style="font-size: 0.8em; color: var(--text-secondary); margin-top: 3px;">0%</div>
-    </div>
-    <div class="chat-list" id="chatList"></div>
-  </div>
-  
-  <!-- Кнопка переключения панели -->
-  <div class="toggle-sidebar" id="toggleSidebar">◀</div>
-  
-  <!-- Основная область чата -->
-  <div class="main" id="mainContent">
-    <div class="chat-window" id="chatWindow">
-      <div class="drag-overlay" id="dragOverlay">
-        <p>Drop files here</p>
-      </div>
-      <div class="chat-content" id="chatContent"></div>
-    </div>
-    <div class="input-wrapper">
-      <div class="intro-text" id="introText">
-        <p id="introTitle">Hi, I'm S/E Chat</p>
-        <p id="introSubtitle">How can I help you today😊?</p>
-      </div>
-      <div id="attachmentsContainer"></div>
-      <div class="input-area">
-        <button id="imageUploadBtn" title="Attach file">
-          <img src="icon/attach-file.png" alt="Attach file" style="width: 24px; height: 24px;">
-        </button>
-        <button id="toolsBtn" title="Toggle Tools">
-          <img src="icon/tools.png" alt="Tools" style="width: 24px; height: 24px;">
-        </button>
-        <input type="file" id="fileInput" multiple style="display: none;">
-        <textarea id="chatInput" placeholder="Enter message..."></textarea>
-        <button id="sendBtn" class="send-btn">
-          <img src="icon/send.png" alt="Send" style="width:50px;height:50px;">
-        </button>
-        <button id="stopBtn" style="display:none;">
-          <img src="icon/stop.png" alt="Stop" style="width:50px;height:50px;">
-        </button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Модальное окно для выбора модели -->
-  <div id="modelModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeModelModal" title="Close">&times;</span>
-      <h2 id="modelModalTitle">Change Model</h2>
-      <div id="modelOptionsContainer"></div>
-      <div id="modelCustomContainer"></div>
-    </div>
-  </div>
-  
-  <!-- Модальное окно для настроек -->
-  <div id="settingsModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closeSettingsModal" title="Close">&times;</span>
-      <h2 id="settingsModalTitle">Settings</h2>
-      <div>
-        <label for="languageSelect" id="languageLabel">Language:</label>
-        <select id="languageSelect">
-          <option value="en">English</option>
-          <option value="ru">Русский</option>
-        </select>
-      </div>
-      <div style="margin-top:15px;">
-        <label for="defaultModelSelect" id="defaultModelLabel">Default Model:</label>
-        <select id="defaultModelSelect"></select>
-      </div>
-
-      <div style="margin-top:15px;">
-        <label for="modelTemperatureInput" id="modelTemperatureLabel">Model Temperature:</label>
-        <div style="display: flex; align-items: center; gap: 10px; width: 90%; margin-top: 8px;">
-          <input type="range" id="modelTemperatureInput" min="0" max="2" step="0.05" style="flex-grow: 1; height: 20px;">
-          <span id="modelTemperatureValueSpan" style="min-width: 30px; text-align: right;">0.8</span>
-        </div>
-      </div>
-      
-      <!-- Настройки темы -->
-      <div style="margin-top:20px;">
-        <label id="themeLabel">Theme:</label>
-        <div class="theme-options">
-          <div class="theme-option theme-dark active" data-theme="dark">Dark</div>
-          <div class="theme-option theme-light" data-theme="light">Light</div>
-        </div>
-      </div>
-      
-      <div style="margin-top:20px;">
-        <label id="backgroundLabel">Background:</label>
-        <div class="custom-theme-inputs">
-          <input type="file" id="bgImageInput" accept="image/*" style="display:none;">
-          <button id="uploadBgBtn">Upload Image</button>
-          <button id="resetBgBtn">Reset</button>
-        </div>
-        
-        <div class="bg-preview" id="bgPreview">
-          <span id="bgPreviewText">No background</span>
-        </div>
-      </div>
-      
-      <div style="margin-top:20px;">
-        <label>Custom Gradient:</label>
-        <div class="custom-theme-inputs">
-          <input type="color" id="gradientColor1" value="#4166d5">
-          <input type="color" id="gradientColor2" value="#1e1f25">
-        </div>
-        <button id="applyGradientBtn" style="width:100%; margin-top:10px;">Apply Gradient</button>
-      </div>
-      
-      
-      <button id="saveSettingsBtn">Save Settings</button>
-    </div>
-  </div>
-  
-  <script src="js/highlightjs/highlight.min.js"></script>
-  <script>hljs.highlightAll();</script>
-  <script>
-    var markdown = window.markdownit({
-      html: false,
-      linkify: true,
-      typographer: true,
-      breaks: true
-    });
-    markdown.toHTML = markdown.render;
-    const message = ``;
-  </script>
-  <script src="js/main.js" type="module"></script>
-</body>
-</html>

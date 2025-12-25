@@ -1,0 +1,35 @@
+{
+  "chatnamess": "New Chat",
+  "history": [
+    {
+      "content": "Hello",
+      "display": "Hello",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "modelUsed": "gemma3:12b",
+      "role": "assistant"
+    },
+    {
+      "content": "Hello",
+      "display": "Hello",
+      "role": "user"
+    },
+    {
+      "content": "Hello",
+      "display": "Hello",
+      "role": "user"
+    },
+    {
+      "role": "user",
+      "content": "Hello",
+      "display": "Hello"
+    }
+  ],
+  "id": "0",
+  "itemElement": {},
+  "modelhs": [
+    "gemma3:12b"
+  ]
+}
