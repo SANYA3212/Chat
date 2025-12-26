@@ -1,4 +1,20 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="description" content="The CDN for everything on npm"/><link rel="icon" type="image/jpeg" href="/favicon.jpg"/><link rel="stylesheet" href="https://app.unpkg.com/_assets/styles-D6XP7YEC.css"/><link rel="stylesheet" href="https://app.unpkg.com/_assets/code-light-B2LHUSJR.css"/><script type="importmap">{"imports":{"preact":"https://unpkg.com/preact@10.25.4/dist/preact.module.js","preact/hooks":"https://unpkg.com/preact@10.25.4/hooks/dist/hooks.module.js","preact/jsx-runtime":"https://unpkg.com/preact@10.25.4/jsx-runtime/dist/jsxRuntime.module.js"}}</script><script type="module" src="https://app.unpkg.com/_assets/scripts-5LWG6LQM.js" defer></script><title>UNPKG</title><script async src="https://www.googletagmanager.com/gtag/js?id=UA-140352188-1"></script><script>window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'UA-140352188-1');</script></head><body><main class="p-4"><h1 class="text-3xl text-center font-bold">Not Found: /@highlightjs/cdn-assets@11.4.0/styles/default.min.css</h1></main></body></html>
+/*!
+  Theme: Default
+  Description: Original highlight.js style
+  Author: (c) Ivan Sagalaev <maniac@softwaremaniacs.org>
+  Maintainer: @highlightjs/core-team
+  Website: https://highlightjs.org/
+  License: see project LICENSE
+  Touched: 2021
+*/pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px
+5px}.hljs{background:#f3f3f3;color:#444}.hljs-comment{color:#697070}.hljs-punctu
+ation,.hljs-tag{color:#444a}.hljs-tag .hljs-attr,.hljs-tag .hljs-name{color:#444
+}.hljs-attribute,.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-name,
+.hljs-selector-tag{font-weight:700}.hljs-deletion,.hljs-number,.hljs-quote,.hljs
+-selector-class,.hljs-selector-id,.hljs-string,.hljs-template-tag,.hljs-type{col
+or:#800}.hljs-section,.hljs-title{color:#800;font-weight:700}.hljs-link,.hljs-op
+erator,.hljs-regexp,.hljs-selector-attr,.hljs-selector-pseudo,.hljs-symbol,.hljs
+-template-variable,.hljs-variable{color:#ab5656}.hljs-literal{color:#695}.hljs-a
+ddition,.hljs-built_in,.hljs-bullet,.hljs-code{color:#397300}.hljs-meta{color:#1
+f7199}.hljs-meta .hljs-string{color:#38a}.hljs-emphasis{font-style:italic}.hljs-
+strong{font-weight:700}

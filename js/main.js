@@ -109,74 +109,6 @@
     let imageFiles = [];
     let fileAttachments = [];
 
-    // --- ПЕРЕВОДЫ ---
-    const translations = {
-      en: {
-        headerTitle: "S/E Chat",
-        currentModel: "Current Model: ",
-        newChat: "New Chat",
-        changeModel: "Change Model",
-        settings: "Settings",
-        send: "Send",
-        stop: "Stop",
-        languageLabel: "Language:",
-        defaultModelLabel: "Default Model:",
-        modelTemperatureLabel: "Model Temperature:",
-        modelModalTitle: "Change Model",
-        settingsModalTitle: "Settings",
-        saveSettings: "Save Settings",
-        deleteBtn: "Delete",
-        inputPlaceholder: "Enter message...",
-        copyBtn: "Copy",
-        copiedBtn: "Copied!",
-        attachFile: "Attach file",
-        copyUserMessage: "Copy message",
-        copyAssistantMessage: "Copy answer",
-        dropFilesHere: "Drop files here",
-        customModel: "Add Model",
-        installModel: "Install Model",
-        close: "Close",
-        newChatTitle: "New Chat",
-        introTitle: "Hi, I'm S/E Chat",
-        introSubtitle: "How can I help you today😊?",
-        themeLabel: "Theme:",
-        backgroundLabel: "Background:",
-        inputPlaceholderGeneratingTitle: "Generating chat title, please wait...",
-      },
-      ru: {
-        headerTitle: "S/E Чат",
-        currentModel: "Текущая модель: ",
-        newChat: "Новый чат",
-        changeModel: "Сменить модель",
-        settings: "Настройки",
-        send: "Отправить",
-        stop: "Остановить",
-        languageLabel: "Язык:",
-        defaultModelLabel: "Модель по умолчанию:",
-        modelTemperatureLabel: "Температура модели:",
-        modelModalTitle: "Сменить модель",
-        settingsModalTitle: "Настройки",
-        saveSettings: "Сохранить настройки",
-        deleteBtn: "Удалить",
-        inputPlaceholder: "Введите сообщение...",
-        copyBtn: "Копировать",
-        copiedBtn: "Скопировано!",
-        attachFile: "Прикрепить файл",
-        copyUserMessage: "Копировать сообщение",
-        copyAssistantMessage: "Копировать ответ",
-        dropFilesHere: "Перетащите файлы сюда",
-        customModel: "Добавить модель",
-        installModel: "Установить",
-        close: "Закрыть",
-        newChatTitle: "Новый чат",
-        introTitle: "Привет, я S/E Чат",
-        introSubtitle: "Чем могу помочь😊?",
-        themeLabel: "Тема:",
-        backgroundLabel: "Фон:",
-        inputPlaceholderGeneratingTitle: "Генерация заголовка чата, пожалуйста подождите...",
-      }
-    };
-
     function updateInterfaceLanguage(lang) {
       document.getElementById("headerTitle").textContent = translations[lang].headerTitle;
       newChatBtn.innerHTML = `<img src="icon/plus.png" alt="New Chat" style="width:28px;height:28px;"> ${translations[lang].newChat}`;
@@ -267,87 +199,54 @@
     }
 
     function parseContentForCodeBlocks(content, modelNameForMessage = '') {
-      content = content.replace(/<(?:think|thought)>[\s\S]*?<\/(?:think|thought)>/gi, "");
+        content = content.replace(/<(?:think|thought)>[\s\S]*?<\/(?:think|thought)>/gi, "");
 
-        // Handle <plan> tags
-        const planRegex = /<plan>([\s\S]*?)<\/plan>/;
-        const planMatch = content.match(planRegex);
-
-        if (planMatch) {
-            const planContent = planMatch[1].trim();
-            // Unique ID for this specific plan instance, e.g., using a timestamp or a simple counter
+        // Handle <plan> tags by replacing them in the content before rendering
+        const planRegex = /<plan>([\s\S]*?)<\/plan>/g; // Use global flag to replace all occurrences
+        content = content.replace(planRegex, (match, planContent) => {
             const planId = `plan-${Date.now()}-${Math.random()}`;
-
-            // Render the plan in a specific container
             let planHtml = `<div class="plan-container" id="${planId}">`;
             planHtml += `<h4>План выполнения</h4>`;
-            planHtml += window.markdown.render(planContent); // Render markdown inside the plan
+            planHtml += window.markdown.render(planContent.trim()); // Render markdown inside the plan
             planHtml += `<div class="plan-actions">`;
             planHtml += `<button onclick="approvePlan('${planId}')">Утвердить</button>`;
             planHtml += `<button onclick="rejectPlan('${planId}')">Отклонить</button>`;
             planHtml += `</div></div>`;
-
-            // Return just the plan HTML
             return planHtml;
-        }
+        });
 
-      const parts = content.split("```");
-      let isCode = false;
-      let result = "";
-      for (let i = 0; i < parts.length; i++) {
-        let segment = parts[i];
-        if (!isCode) {
-          // >>> НАЧАЛО КОСТЫЛЯ ДЛЯ DEEPSEEK MATHJAX
-          let isDeepseekModel = false;
-          if (modelNameForMessage && modelNameForMessage.toLowerCase().includes("deepseek")) {
+
+        // >>> НАЧАЛО КОСТЫЛЯ ДЛЯ DEEPSEEK MATHJAX
+        let isDeepseekModel = false;
+        if (modelNameForMessage && modelNameForMessage.toLowerCase().includes("deepseek")) {
             isDeepseekModel = true;
-          }
-          // Note: The original request had a more complex way to find messageObject or use currentModel.
-          // Since modelNameForMessage is now directly passed, this simplifies.
-          // If modelNameForMessage is empty, isDeepseekModel remains false.
-
-          if (isDeepseekModel) {
-            console.log('[MathJaxDebug] Deepseek model detected, applying MathJax content fixes for [] and [[]]. Segment before fix:', segment);
-            // Костыль для одинарных квадратных скобок [formula] -> $formula$
-            // Ищет [содержимое_с_мат_символами_без_внутренних_скобок_и_долларов] НЕ ЗА КОТОРЫМ СЛЕДУЕТ '('
-            segment = segment.replace(/\[((?:[^\$\(\)\[\]]|\[(?:\^|\_|[a-zA-Z0-9]))*?[\^_a-zA-Z0-9\\](?:[^\$\(\)\[\]]|\[(?:\^|\_|[a-zA-Z0-9]))*?)\](?!\s*\()/g, (match, p1) => {
-              if (p1.includes('$')) return match;
-              if (/[\^_\{\}]|(?:\b(?:frac|sqrt|sum|int|lim|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|omega|infty|pm|times|div|approx|neq|leq|geq|equiv|forall|exists|nabla|partial)\b)/.test(p1)) {
-                console.log(`[MathJaxDebug] Deepseek-костыль (single_bracket): [${p1}] -> $${p1}$`);
-                return `$${p1}$`;
-              }
-              return match;
-            });
-
-            // Костыль для двойных квадратных скобок [[formula]] -> $$formula$$
-            segment = segment.replace(/\[\[((?:[^\$\(\)\[\]]|\[(?:\^|\_|[a-zA-Z0-9]))*?[\^_a-zA-Z0-9\\](?:[^\$\(\)\[\]]|\[(?:\^|\_|[a-zA-Z0-9]))*?)\]\](?!\s*\()/g, (match, p1) => {
-              if (p1.includes('$')) return match;
-              if (/[\^_\{\}]|(?:\b(?:frac|sqrt|sum|int|lim|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|omega|infty|pm|times|div|approx|neq|leq|geq|equiv|forall|exists|nabla|partial)\b)/.test(p1)) {
-                console.log(`[MathJaxDebug] Deepseek-костыль (double_bracket): [[${p1}]] -> $$${p1}$$`);
-                return `$$${p1}$$`;
-              }
-              return match;
-            });
-            console.log('[MathJaxDebug] Segment after fix:', segment);
-          }
-          // <<< КОНЕЦ КОСТЫЛЯ ДЛЯ DEEPSEEK MATHJAX
-
-          let rendered = window.markdown.render(segment.trim());
-          result += `<div class="chat-text">${rendered}</div>`;
-        } else {
-          let escapedCode = escapeHtml(segment);
-          result += `
-            <div class="code-container">
-              <button class="copy-btn" onclick="copyCode(this)">
-                <img src="icon/copy.png" alt="Copy" style="width:24px; height:24px;">
-              </button>
-              <pre><code>${escapedCode}</code></pre>
-            </div>
-          `;
         }
-        isCode = !isCode;
-      }
-      return result;
+
+        if (isDeepseekModel) {
+            console.log('[MathJaxDebug] Deepseek model detected, applying MathJax content fixes for [] and [[]]. Content before fix:', content);
+            content = content.replace(/\[((?:[^\$\(\)\[\]]|\[(?:\^|\_|[a-zA-Z0-9]))*?[\^_a-zA-Z0-9\\](?:[^\$\(\)\[\]]|\[(?:\^|\_|[a-zA-Z0-9]))*?)\](?!\s*\()/g, (match, p1) => {
+                if (p1.includes('$')) return match;
+                if (/[\^_\{\}]|(?:\b(?:frac|sqrt|sum|int|lim|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|omega|infty|pm|times|div|approx|neq|leq|geq|equiv|forall|exists|nabla|partial)\b)/.test(p1)) {
+                    return `$${p1}$`;
+                }
+                return match;
+            });
+            content = content.replace(/\[\[((?:[^\$\(\)\[\]]|\[(?:\^|\_|[a-zA-Z0-9]))*?[\^_a-zA-Z0-9\\](?:[^\$\(\)\[\]]|\[(?:\^|\_|[a-zA-Z0-9]))*?)\]\](?!\s*\()/g, (match, p1) => {
+                if (p1.includes('$')) return match;
+                if (/[\^_\{\}]|(?:\b(?:frac|sqrt|sum|int|lim|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|omega|infty|pm|times|div|approx|neq|leq|geq|equiv|forall|exists|nabla|partial)\b)/.test(p1)) {
+                    return `$$${p1}$$`;
+                }
+                return match;
+            });
+            console.log('[MathJaxDebug] Content after fix:', content);
+        }
+        // <<< КОНЕЦ КОСТЫЛЯ ДЛЯ DEEPSEEK MATHJAX
+
+        // Render everything via markdown-it. The custom fence renderer will handle code blocks.
+        const renderedContent = window.markdown.render(content);
+
+        // Wrap the final output in a chat-text div for consistent styling.
+        return `<div class="chat-text">${renderedContent}</div>`;
     }
 
     function updateAttachmentsPreview() {
@@ -1119,7 +1018,6 @@ async function sendMessage(isContinuation = false) {
         imageFiles = [];
         fileAttachments = [];
         updateAttachmentsPreview();
-        updateChatWindow();
         await saveChat(chat);
 
         // --- Логика генерации заголовка чата (начало) ---
@@ -1239,13 +1137,17 @@ async function sendMessage(isContinuation = false) {
             }
 
             if (streamingTextContainer) {
-                streamingTextContainer.textContent = currentStreamedContent;
+                streamingTextContainer.innerHTML = markdown.render(currentStreamedContent);
+                if (window.hljs) {
+                    streamingTextContainer.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightBlock(block);
+                    });
+                }
             }
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
         assistantMessageEntry.content = currentStreamedContent;
-        // updateChatWindow(); // This was causing the TPS counter to disappear
         await saveChat(chat);
 
         // --- ОБРАБОТКА ИНСТРУМЕНТОВ ---

@@ -203,9 +203,10 @@ def generate_stream():
   Пример (поиск): [TOOL_CALL] file_operations({"operation": "search", "source": "C:\\Users", "pattern": "*.docx"})
 
 💻 СИСТЕМНОЕ УПРАВЛЕНИЕ:
-- execute_command: Выполнение команды в терминале (cmd/bash).
+- execute_command: Выполнение ЛЮБОЙ команды в терминале (cmd/bash).
   Параметры: {"command": "команда_с_аргументами"}
-  Пример: [TOOL_CALL] execute_command({"command": "ipconfig /all"})
+  Пример 1: [TOOL_CALL] execute_command({"command": "ipconfig /all"})
+  Пример 2: [TOOL_CALL] execute_command({"command": "pip install --upgrade pip"})
 - run_application: Запуск приложения.
   Параметры: {"app_name": "имя.exe"} (для программ из PATH) ИЛИ {"app_path": "полный_путь_к\\имя.exe"}. Можно добавить {"arguments": "аргументы"}.
   Пример (имя): [TOOL_CALL] run_application({"app_name": "notepad.exe"})
@@ -227,7 +228,22 @@ def generate_stream():
   Параметры: {"executable_name": "имя_файла.exe"}
   Пример: [TOOL_CALL] find_executable({"executable_name": "python.exe"})
 
-Отвечай на языке пользователя."""
+Отвечай на языке пользователя.
+
+**Режим Агента (Планирование):**
+Для сложных задач, требующих нескольких шагов, ты должен сначала составить план.
+1.  **Составь план:** Опиши шаги для решения задачи.
+2.  **Предложи план:** Оберни план в теги `<plan> ... </plan>`. План будет показан пользователю для утверждения.
+3.  **Дождись утверждения:** Не выполняй никаких действий, пока пользователь не утвердит план.
+4.  **Выполняй по шагам:** После утверждения ("Yes, proceed with the plan." или "да, продолжай"), выполняй каждый шаг плана, вызывая необходимые инструменты.
+5.  **Отчитывайся:** Сообщай о результатах каждого шага.
+
+Пример плана:
+<plan>
+1.  Узнать текущую рабочую директорию с помощью `execute_command` с командой `cd`.
+2.  Создать новую папку `test_folder` с помощью `create_directory`.
+3.  Создать файл `test.txt` внутри `test_folder` с помощью `create_file`.
+</plan>"""
             system_message = {"role": "system", "content": system_message_content}
             messages.insert(0, system_message)
 
@@ -788,29 +804,55 @@ def execute_tool():
         
         elif tool_name == 'execute_command':
             command = parameters.get('command')
-            
             if not command:
                 return jsonify({'error': 'Не указана команда для выполнения'}), 400
             
             try:
-                # Выполняем команду в зависимости от ОС
-                if platform.system() == 'Windows':
-                    result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=30)
-                else:
-                    result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=30)
+                app.logger.info(f"Executing command: {command}")
+
+                # Используем Popen для потокового вывода
+                process = subprocess.Popen(
+                    command,
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    # В Windows часто используется cp866 в консоли
+                    encoding='cp866' if platform.system() == 'Windows' else 'utf-8',
+                    errors='replace' # Заменяем символы, которые не удалось декодировать
+                )
                 
-                output = result.stdout if result.stdout else result.stderr
-                return_code = result.returncode
+                # Читаем stdout и stderr в реальном времени
+                output = ""
+                while True:
+                    line = process.stdout.readline()
+                    if not line:
+                        break
+                    output += line
+                    # В будущем можно реализовать WebSocket для отправки вывода в реальном времени
+
+                stderr_output = process.stderr.read()
+
+                process.wait(timeout=30) # Ждем завершения процесса
+
+                return_code = process.returncode
+                final_output = output + stderr_output
+
+                app.logger.info(f"Command finished with code {return_code}. Output:\n{final_output}")
                 
                 return jsonify({
-                    'result': f'Команда выполнена (код возврата: {return_code})\nВывод:\n{output}',
+                    'result': f'Команда выполнена (код возврата: {return_code})\nВывод:\n{final_output}',
                     'return_code': return_code,
-                    'stdout': result.stdout,
-                    'stderr': result.stderr
+                    'stdout': output,
+                    'stderr': stderr_output
                 })
+
             except subprocess.TimeoutExpired:
+                process.kill() # Убиваем процесс, если он завис
+                app.logger.error(f"Command timed out: {command}")
                 return jsonify({'error': 'Команда превысила лимит времени выполнения (30 сек)'}), 408
             except Exception as e:
+                app.logger.error(f"Error executing command '{command}': {e}")
                 return jsonify({'error': f'Ошибка выполнения команды: {str(e)}'}), 500
         
         elif tool_name == 'run_application':

@@ -1,4 +1,23 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="description" content="The CDN for everything on npm"/><link rel="icon" type="image/jpeg" href="/favicon.jpg"/><link rel="stylesheet" href="https://app.unpkg.com/_assets/styles-D6XP7YEC.css"/><link rel="stylesheet" href="https://app.unpkg.com/_assets/code-light-B2LHUSJR.css"/><script type="importmap">{"imports":{"preact":"https://unpkg.com/preact@10.25.4/dist/preact.module.js","preact/hooks":"https://unpkg.com/preact@10.25.4/hooks/dist/hooks.module.js","preact/jsx-runtime":"https://unpkg.com/preact@10.25.4/jsx-runtime/dist/jsxRuntime.module.js"}}</script><script type="module" src="https://app.unpkg.com/_assets/scripts-5LWG6LQM.js" defer></script><title>UNPKG</title><script async src="https://www.googletagmanager.com/gtag/js?id=UA-140352188-1"></script><script>window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'UA-140352188-1');</script></head><body><main class="p-4"><h1 class="text-3xl text-center font-bold">Not Found: /@highlightjs/cdn-assets@11.4.0/styles/dark.min.css</h1></main></body></html>
+pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
+x}/*!
+  Theme: GitHub Dark
+  Description: Dark theme as seen on github.com
+  Author: github.com
+  Maintainer: @Hirse
+  Updated: 2021-05-15
+
+  Outdated base version: https://github.com/primer/github-syntax-dark
+  Current colors taken from GitHub's CSS
+*/.hljs{color:#c9d1d9;background:#0d1117}.hljs-doctag,.hljs-keyword,.hljs-meta .
+hljs-keyword,.hljs-template-tag,.hljs-template-variable,.hljs-type,.hljs-variabl
+e.language_{color:#ff7b72}.hljs-title,.hljs-title.class_,.hljs-title.class_.inhe
+rited__,.hljs-title.function_{color:#d2a8ff}.hljs-attr,.hljs-attribute,.hljs-lit
+eral,.hljs-meta,.hljs-number,.hljs-operator,.hljs-selector-attr,.hljs-selector-c
+lass,.hljs-selector-id,.hljs-variable{color:#79c0ff}.hljs-meta .hljs-string,.hlj
+s-regexp,.hljs-string{color:#a5d6ff}.hljs-built_in,.hljs-symbol{color:#ffa657}.h
+ljs-code,.hljs-comment,.hljs-formula{color:#8b949e}.hljs-name,.hljs-quote,.hljs-
+selector-pseudo,.hljs-selector-tag{color:#7ee787}.hljs-subst{color:#c9d1d9}.hljs
+-section{color:#1f6feb;font-weight:700}.hljs-bullet{color:#f2cc60}.hljs-emphasis
+{color:#c9d1d9;font-style:italic}.hljs-strong{color:#c9d1d9;font-weight:700}.hlj
+s-addition{color:#aff5b4;background-color:#033a16}.hljs-deletion{color:#ffdcd7;b
+ackground-color:#67060c}
